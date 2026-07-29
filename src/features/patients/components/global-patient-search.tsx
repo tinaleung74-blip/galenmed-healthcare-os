@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   useEffect,
@@ -104,7 +104,7 @@ export function GlobalPatientSearch({
     setActiveIndex(-1)
 
     router.push(
-      `/patients?search=${encodeURIComponent(
+      `/patients/${encodeURIComponent(
         patient.medicalRecordNumber
       )}`
     )

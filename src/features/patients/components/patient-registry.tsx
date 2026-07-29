@@ -1,9 +1,10 @@
-﻿"use client"
+"use client"
 
 import {
   useCallback,
   useState,
 } from "react"
+import { useRouter } from "next/navigation"
 import {
   Plus,
   ShieldCheck,
@@ -31,6 +32,8 @@ const patientCountFormatter =
 export function PatientRegistry({
   initialSearch = "",
 }: PatientRegistryProps) {
+  const router = useRouter()
+
   const {
     patients,
     createPatient,
@@ -81,6 +84,19 @@ export function PatientRegistry({
       setViewedPatientId(patient.id)
     },
     []
+  )
+
+  const handleOpenPatientProfile = useCallback(
+    (patient: Patient) => {
+      setViewedPatientId(null)
+
+      router.push(
+        `/patients/${encodeURIComponent(
+          patient.medicalRecordNumber
+        )}`
+      )
+    },
+    [router]
   )
 
   const handleEditPatient = useCallback(
@@ -231,6 +247,9 @@ export function PatientRegistry({
           patients={patients}
           initialSearch={initialSearch}
           onViewPatient={handleViewPatient}
+          onOpenPatientProfile={
+            handleOpenPatientProfile
+          }
           onEditPatient={handleEditPatient}
           onArchivePatient={
             handleArchiveRequest
@@ -267,6 +286,9 @@ export function PatientRegistry({
             setViewedPatientId(null)
           }
         }}
+        onOpenFullProfile={
+          handleOpenPatientProfile
+        }
         onEditPatient={editPatientFromDetails}
       />
 

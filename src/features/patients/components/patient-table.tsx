@@ -45,6 +45,7 @@ interface PatientTableProps {
   patients: Patient[]
   initialSearch?: string
   onViewPatient: (patient: Patient) => void
+  onOpenPatientProfile: (patient: Patient) => void
   onEditPatient: (patient: Patient) => void
   onArchivePatient: (patient: Patient) => void
 }
@@ -143,6 +144,7 @@ export function PatientTable({
   patients,
   initialSearch = "",
   onViewPatient,
+  onOpenPatientProfile,
   onEditPatient,
   onArchivePatient,
 }: PatientTableProps) {
@@ -175,11 +177,13 @@ export function PatientTable({
     () =>
       getPatientTableColumns({
         onViewPatient,
+        onOpenPatientProfile,
         onEditPatient,
         onArchivePatient,
       }),
     [
       onViewPatient,
+      onOpenPatientProfile,
       onEditPatient,
       onArchivePatient,
     ]

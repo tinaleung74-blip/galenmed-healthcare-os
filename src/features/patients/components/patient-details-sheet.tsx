@@ -1,8 +1,9 @@
-﻿"use client"
+"use client"
 
 import type { ReactNode } from "react"
 import {
   CalendarDays,
+  ExternalLink,
   Mail,
   MapPin,
   Pencil,
@@ -37,6 +38,7 @@ interface PatientDetailsSheetProps {
   patient: Patient | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onOpenFullProfile: (patient: Patient) => void
   onEditPatient: (patient: Patient) => void
 }
 
@@ -68,6 +70,7 @@ export function PatientDetailsSheet({
   patient,
   open,
   onOpenChange,
+  onOpenFullProfile,
   onEditPatient,
 }: PatientDetailsSheetProps) {
   if (!patient) {
@@ -315,6 +318,15 @@ export function PatientDetailsSheet({
             onClick={() => onOpenChange(false)}
           >
             Close
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenFullProfile(patient)}
+          >
+            <ExternalLink aria-hidden="true" />
+            Open full profile
           </Button>
 
           <Button

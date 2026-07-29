@@ -8,6 +8,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Eye,
+  ExternalLink,
   MoreHorizontal,
   Pencil,
 } from "lucide-react"
@@ -41,6 +42,7 @@ interface SortableColumnHeaderProps<TData, TValue> {
 
 export interface PatientTableActionHandlers {
   onViewPatient: (patient: Patient) => void
+  onOpenPatientProfile: (patient: Patient) => void
   onEditPatient: (patient: Patient) => void
   onArchivePatient: (patient: Patient) => void
 }
@@ -79,6 +81,7 @@ function SortableColumnHeader<TData, TValue>({
 
 export function getPatientTableColumns({
   onViewPatient,
+  onOpenPatientProfile,
   onEditPatient,
   onArchivePatient,
 }: PatientTableActionHandlers): ColumnDef<Patient>[] {
@@ -303,6 +306,15 @@ export function getPatientTableColumns({
               >
                 <Eye aria-hidden="true" />
                 View details
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() =>
+                  onOpenPatientProfile(patient)
+                }
+              >
+                <ExternalLink aria-hidden="true" />
+                Open full profile
               </DropdownMenuItem>
 
               <DropdownMenuItem
