@@ -1,7 +1,9 @@
-import type { Metadata } from "next"
+﻿import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
+import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { PatientProvider } from "@/features/patients/providers/patient-provider"
 
 import "./globals.css"
 
@@ -30,7 +32,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <PatientProvider>{children}</PatientProvider>
+          <Toaster />
+        </TooltipProvider>
       </body>
     </html>
   )

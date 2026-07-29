@@ -1,13 +1,24 @@
-import { Users } from "lucide-react"
+﻿import { PatientListPage } from "@/features/patients/components/patient-list-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
+interface PatientsPageProps {
+  searchParams: Promise<{
+    search?: string | string[]
+  }>
+}
 
-export default function Page() {
+export default async function PatientsPage({
+  searchParams,
+}: PatientsPageProps) {
+  const resolvedSearchParams = await searchParams
+  const searchValue = resolvedSearchParams.search
+
+  const initialSearch = (
+    Array.isArray(searchValue)
+      ? searchValue[0] ?? ""
+      : searchValue ?? ""
+  ).slice(0, 200)
+
   return (
-    <ModulePlaceholder
-      title="Patients"
-      description="Register patients and manage demographic and medical information."
-      icon={Users}
-    />
+    <PatientListPage initialSearch={initialSearch} />
   )
 }
