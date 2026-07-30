@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { MedicalHistoryWorkspace } from "@/features/patients/components/medical-history-workspace"
 import { PatientFormDialog } from "@/features/patients/components/patient-form-dialog"
 import { PatientProfileHeader } from "@/features/patients/components/patient-profile-header"
 import { PatientProfileNavigation } from "@/features/patients/components/patient-profile-navigation"
@@ -43,7 +44,8 @@ export function PatientProfileClient({
     return <PatientProfileNotFound />
   }
 
-  const patientId = patient.id
+  const currentPatient = patient
+  const patientId = currentPatient.id
 
   const sectionDefinition =
     PATIENT_PROFILE_SECTIONS.find(
@@ -65,11 +67,36 @@ export function PatientProfileClient({
     })
   }
 
+  function renderActiveSection() {
+    if (activeSection === "overview") {
+      return (
+        <PatientProfileOverview
+          patient={currentPatient}
+        />
+      )
+    }
+
+    if (activeSection === "medical-history") {
+      return (
+        <MedicalHistoryWorkspace
+          patient={currentPatient}
+        />
+      )
+    }
+
+    return (
+      <PatientProfileSectionPlaceholder
+        title={sectionDefinition.label}
+        description={sectionDefinition.description}
+      />
+    )
+  }
+
   return (
     <>
       <div className="space-y-6">
         <PatientProfileHeader
-          patient={patient}
+          patient={currentPatient}
           onEditPatient={() =>
             setIsEditDialogOpen(true)
           }
@@ -77,24 +104,17 @@ export function PatientProfileClient({
 
         <PatientProfileNavigation
           patientReference={
-            patient.medicalRecordNumber
+            currentPatient.medicalRecordNumber
           }
           activeSection={activeSection}
         />
 
-        {activeSection === "overview" ? (
-          <PatientProfileOverview patient={patient} />
-        ) : (
-          <PatientProfileSectionPlaceholder
-            title={sectionDefinition.label}
-            description={sectionDefinition.description}
-          />
-        )}
+        {renderActiveSection()}
       </div>
 
       <PatientFormDialog
         mode="edit"
-        patient={patient}
+        patient={currentPatient}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmitPatient={handleUpdatePatient}
