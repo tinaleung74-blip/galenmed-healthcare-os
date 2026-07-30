@@ -13,6 +13,7 @@ import { PatientProfileNavigation } from "@/features/patients/components/patient
 import { PatientProfileNotFound } from "@/features/patients/components/patient-profile-not-found"
 import { PatientProfileOverview } from "@/features/patients/components/patient-profile-overview"
 import { PatientProfileSectionPlaceholder } from "@/features/patients/components/patient-profile-section-placeholder"
+import { PatientTimelineWorkspace } from "@/features/patients/components/patient-timeline-workspace"
 import { VitalSignsWorkspace } from "@/features/patients/components/vital-signs-workspace"
 import {
   PATIENT_PROFILE_SECTIONS,
@@ -116,6 +117,14 @@ export function PatientProfileClient({
     if (activeSection === "documents") {
       return (
         <PatientDocumentsWorkspace
+          patient={currentPatient}
+        />
+      )
+    }
+
+    if (activeSection === "timeline") {
+      return (
+        <PatientTimelineWorkspace
           patient={currentPatient}
         />
       )
