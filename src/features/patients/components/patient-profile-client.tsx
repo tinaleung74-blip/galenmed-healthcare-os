@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { toast } from "sonner"
@@ -10,6 +10,7 @@ import { PatientProfileNavigation } from "@/features/patients/components/patient
 import { PatientProfileNotFound } from "@/features/patients/components/patient-profile-not-found"
 import { PatientProfileOverview } from "@/features/patients/components/patient-profile-overview"
 import { PatientProfileSectionPlaceholder } from "@/features/patients/components/patient-profile-section-placeholder"
+import { VitalSignsWorkspace } from "@/features/patients/components/vital-signs-workspace"
 import {
   PATIENT_PROFILE_SECTIONS,
   type PatientProfileSection,
@@ -27,7 +28,8 @@ export function PatientProfileClient({
   patientReference,
   activeSection,
 }: PatientProfileClientProps) {
-  const { patients, updatePatient } = usePatients()
+  const { patients, updatePatient } =
+    usePatients()
 
   const [isEditDialogOpen, setIsEditDialogOpen] =
     useState(false)
@@ -79,6 +81,14 @@ export function PatientProfileClient({
     if (activeSection === "medical-history") {
       return (
         <MedicalHistoryWorkspace
+          patient={currentPatient}
+        />
+      )
+    }
+
+    if (activeSection === "vital-signs") {
+      return (
+        <VitalSignsWorkspace
           patient={currentPatient}
         />
       )

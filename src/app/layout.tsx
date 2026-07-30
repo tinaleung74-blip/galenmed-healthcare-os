@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { PatientMedicalHistoryProvider } from "@/features/patients/providers/patient-medical-history-provider"
 import { PatientProvider } from "@/features/patients/providers/patient-provider"
+import { PatientVitalSignsProvider } from "@/features/patients/providers/patient-vital-signs-provider"
 
 import "./globals.css"
 
@@ -37,7 +38,9 @@ export default function RootLayout({
         <TooltipProvider>
           <PatientProvider>
             <PatientMedicalHistoryProvider>
-              {children}
+              <PatientVitalSignsProvider>
+                {children}
+              </PatientVitalSignsProvider>
             </PatientMedicalHistoryProvider>
           </PatientProvider>
 
