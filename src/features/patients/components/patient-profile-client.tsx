@@ -1,9 +1,10 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { MedicalHistoryWorkspace } from "@/features/patients/components/medical-history-workspace"
+import { PatientAllergyWorkspace } from "@/features/patients/components/patient-allergy-workspace"
 import { PatientFormDialog } from "@/features/patients/components/patient-form-dialog"
 import { PatientProfileHeader } from "@/features/patients/components/patient-profile-header"
 import { PatientProfileNavigation } from "@/features/patients/components/patient-profile-navigation"
@@ -89,6 +90,14 @@ export function PatientProfileClient({
     if (activeSection === "vital-signs") {
       return (
         <VitalSignsWorkspace
+          patient={currentPatient}
+        />
+      )
+    }
+
+    if (activeSection === "allergies") {
+      return (
+        <PatientAllergyWorkspace
           patient={currentPatient}
         />
       )
