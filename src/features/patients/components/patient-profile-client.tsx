@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import { MedicalHistoryWorkspace } from "@/features/patients/components/medical-history-workspace"
 import { PatientAllergyWorkspace } from "@/features/patients/components/patient-allergy-workspace"
+import { PatientDocumentsWorkspace } from "@/features/patients/components/patient-documents-workspace"
 import { PatientFormDialog } from "@/features/patients/components/patient-form-dialog"
 import { PatientInsuranceWorkspace } from "@/features/patients/components/patient-insurance-workspace"
 import { PatientProfileHeader } from "@/features/patients/components/patient-profile-header"
@@ -107,6 +108,14 @@ export function PatientProfileClient({
     if (activeSection === "insurance") {
       return (
         <PatientInsuranceWorkspace
+          patient={currentPatient}
+        />
+      )
+    }
+
+    if (activeSection === "documents") {
+      return (
+        <PatientDocumentsWorkspace
           patient={currentPatient}
         />
       )
