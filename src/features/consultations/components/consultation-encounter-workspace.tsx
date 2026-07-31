@@ -3,21 +3,16 @@
 import Link from "next/link"
 import {
   ArrowLeft,
-  FileSignature,
   Play,
   Stethoscope,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+
 import { ConsultationClinicalContext } from "@/features/consultations/components/consultation-clinical-context"
 import { ConsultationDiagnosisWorkspace } from "@/features/consultations/components/consultation-diagnosis-workspace"
+import { ConsultationFinalizationWorkspace } from "@/features/consultations/components/consultation-finalization-workspace"
 import { ConsultationPrescriptionWorkspace } from "@/features/consultations/components/consultation-prescription-workspace"
 import { ConsultationSoapNoteEditor } from "@/features/consultations/components/consultation-soap-note-editor"
 import {
@@ -318,46 +313,9 @@ export function ConsultationEncounterWorkspace({
             consultation={currentConsultation}
           />
 
-          <section className="grid gap-4">
-            {[
-              {
-                title:
-                  "Follow-up & Signature",
-                description:
-                  "Follow-up plan, digital signature, and encounter finalization.",
-                icon: FileSignature,
-              },
-            ].map((section) => {
-              const Icon = section.icon
-
-              return (
-                <Card
-                  key={section.title}
-                  className="border-dashed shadow-none"
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Icon
-                        className="size-4 text-teal-700"
-                        aria-hidden="true"
-                      />
-                      {section.title}
-                    </CardTitle>
-                  </CardHeader>
-
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {section.description}
-                    </p>
-
-                    <p className="mt-4 text-xs font-medium text-teal-700">
-                      Next Consultation increment
-                    </p>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </section>
+          <ConsultationFinalizationWorkspace
+            consultation={currentConsultation}
+          />
         </>
       ) : null}
 

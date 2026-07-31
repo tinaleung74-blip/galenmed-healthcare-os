@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   createContext,
@@ -39,6 +39,11 @@ interface ConsultationPrescriptionContextValue {
     recordId: string,
     archiveReason: string
   ) => ConsultationPrescriptionRecord
+
+  activateConsultationDrafts: (
+    consultationId: string,
+    activatedAt?: string
+  ) => ConsultationPrescriptionRecord[]
 }
 
 const ConsultationPrescriptionContext =
@@ -526,6 +531,79 @@ export function ConsultationPrescriptionProvider({
       [consultations]
     )
 
+  const activateConsultationDrafts =
+    useCallback(
+      (
+        consultationId: string,
+        activatedAt =
+          new Date().toISOString()
+      ): ConsultationPrescriptionRecord[] => {
+        const consultation =
+          getEditableConsultation(
+            consultations,
+            consultationId
+          )
+
+        const currentDrafts =
+          recordsRef.current.filter(
+            (record) =>
+              record.consultationId ===
+                consultationId &&
+              record.recordStatus ===
+                "current" &&
+              record.status === "draft"
+          )
+
+        const unreviewedDraft =
+          currentDrafts.find(
+            (record) =>
+              record.allergyReviewStatus ===
+              "not-reviewed"
+          )
+
+        if (unreviewedDraft) {
+          throw new Error(
+            `${unreviewedDraft.medicationName} requires allergy review before encounter finalization.`
+          )
+        }
+
+        const nextRecords =
+          recordsRef.current.map(
+            (record) => {
+              if (
+                record.consultationId !==
+                  consultationId ||
+                record.recordStatus !==
+                  "current" ||
+                record.status !== "draft"
+              ) {
+                return record
+              }
+
+              return {
+                ...record,
+                status: "active" as const,
+                updatedBy:
+                  consultation.doctorName,
+                updatedAt: activatedAt,
+              }
+            }
+          )
+
+        recordsRef.current = nextRecords
+
+        setPrescriptionRecords(
+          nextRecords
+        )
+
+        return nextRecords.filter(
+          (record) =>
+            record.consultationId ===
+            consultationId
+        )
+      },
+      [consultations]
+    )
   const contextValue =
     useMemo<ConsultationPrescriptionContextValue>(
       () => ({
@@ -533,12 +611,14 @@ export function ConsultationPrescriptionProvider({
         createPrescriptionRecord,
         updatePrescriptionRecord,
         archivePrescriptionRecord,
+        activateConsultationDrafts,
       }),
       [
         prescriptionRecords,
         createPrescriptionRecord,
         updatePrescriptionRecord,
         archivePrescriptionRecord,
+        activateConsultationDrafts,
       ]
     )
 

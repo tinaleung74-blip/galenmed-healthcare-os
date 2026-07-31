@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   createContext,
@@ -18,6 +18,11 @@ interface ConsultationContextValue {
 
   startConsultation: (
     consultationId: string
+  ) => ConsultationEncounter
+
+  completeConsultation: (
+    consultationId: string,
+    completedAt?: string
   ) => ConsultationEncounter
 
   cancelConsultation: (
@@ -112,6 +117,64 @@ export function ConsultationProvider({
     []
   )
 
+  const completeConsultation = useCallback(
+    (
+      consultationId: string,
+      completedAt = new Date().toISOString()
+    ): ConsultationEncounter => {
+      const existingConsultation =
+        consultationsRef.current.find(
+          (consultation) =>
+            consultation.id === consultationId
+        )
+
+      if (!existingConsultation) {
+        throw new Error(
+          "The consultation record was not found."
+        )
+      }
+
+      if (
+        existingConsultation.status ===
+        "completed"
+      ) {
+        return existingConsultation
+      }
+
+      if (
+        existingConsultation.status !==
+        "in-progress"
+      ) {
+        throw new Error(
+          "Only an in-progress consultation can be completed."
+        )
+      }
+
+      const completedConsultation:
+        ConsultationEncounter = {
+        ...existingConsultation,
+        status: "completed",
+        completedAt,
+        updatedAt: completedAt,
+      }
+
+      const nextConsultations =
+        consultationsRef.current.map(
+          (consultation) =>
+            consultation.id === consultationId
+              ? completedConsultation
+              : consultation
+        )
+
+      consultationsRef.current =
+        nextConsultations
+
+      setConsultations(nextConsultations)
+
+      return completedConsultation
+    },
+    []
+  )
   const cancelConsultation = useCallback(
     (
       consultationId: string,
@@ -240,12 +303,14 @@ export function ConsultationProvider({
       () => ({
         consultations,
         startConsultation,
+        completeConsultation,
         cancelConsultation,
         markConsultationNoShow,
       }),
       [
         consultations,
         startConsultation,
+        completeConsultation,
         cancelConsultation,
         markConsultationNoShow,
       ]

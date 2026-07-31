@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   createContext,
@@ -29,6 +29,11 @@ interface ConsultationEmrContextValue {
   saveSoapDraft: (
     consultationId: string,
     values: ConsultationSoapNoteFormValues
+  ) => ConsultationSoapNote
+
+  finalizeSoapNote: (
+    consultationId: string,
+    finalizedAt?: string
   ) => ConsultationSoapNote
 }
 
@@ -242,17 +247,145 @@ export function ConsultationEmrProvider({
     [consultations]
   )
 
+  const finalizeSoapNote = useCallback(
+    (
+      consultationId: string,
+      finalizedAt = new Date().toISOString()
+    ): ConsultationSoapNote => {
+      const consultation =
+        consultations.find(
+          (candidateConsultation) =>
+            candidateConsultation.id ===
+            consultationId
+        )
+
+      if (!consultation) {
+        throw new Error(
+          "The consultation record was not found."
+        )
+      }
+
+      if (
+        consultation.status !==
+        "in-progress"
+      ) {
+        throw new Error(
+          "SOAP notes can only be finalized during an in-progress consultation."
+        )
+      }
+
+      const existingNote =
+        notesRef.current.find(
+          (note) =>
+            note.consultationId ===
+            consultationId
+        ) ?? null
+
+      if (!existingNote) {
+        throw new Error(
+          "A SOAP note is required before finalizing the encounter."
+        )
+      }
+
+      if (
+        existingNote.status ===
+        "finalized"
+      ) {
+        return existingNote
+      }
+
+      const soapSections = [
+        existingNote.subjective,
+        existingNote.objective,
+        existingNote.assessment,
+        existingNote.plan,
+      ]
+
+      const hasIncompleteSection =
+        soapSections.some(
+          (section) =>
+            section.trim().length < 2
+        )
+
+      if (hasIncompleteSection) {
+        throw new Error(
+          "Subjective, Objective, Assessment, and Plan must all be completed before finalization."
+        )
+      }
+
+      const finalizedNote:
+        ConsultationSoapNote = {
+        ...existingNote,
+        status: "finalized",
+        version: existingNote.version + 1,
+        updatedBy:
+          consultation.doctorName,
+        updatedAt: finalizedAt,
+        finalizedBy:
+          consultation.doctorName,
+        finalizedAt,
+      }
+
+      const nextNotes =
+        notesRef.current.map((note) =>
+          note.id === existingNote.id
+            ? finalizedNote
+            : note
+        )
+
+      const revision:
+        ConsultationSoapNoteRevision = {
+        id: createTemporarySoapRevisionId(),
+        soapNoteId: finalizedNote.id,
+        consultationId:
+          finalizedNote.consultationId,
+        patientId:
+          finalizedNote.patientId,
+        version: finalizedNote.version,
+        action: "finalized",
+        subjective:
+          finalizedNote.subjective,
+        objective:
+          finalizedNote.objective,
+        assessment:
+          finalizedNote.assessment,
+        plan: finalizedNote.plan,
+        changedBy:
+          consultation.doctorName,
+        changedAt: finalizedAt,
+      }
+
+      const nextRevisions = [
+        revision,
+        ...revisionsRef.current,
+      ]
+
+      notesRef.current = nextNotes
+      revisionsRef.current =
+        nextRevisions
+
+      setSoapNotes(nextNotes)
+      setSoapNoteRevisions(
+        nextRevisions
+      )
+
+      return finalizedNote
+    },
+    [consultations]
+  )
   const contextValue =
     useMemo<ConsultationEmrContextValue>(
       () => ({
         soapNotes,
         soapNoteRevisions,
         saveSoapDraft,
+        finalizeSoapNote,
       }),
       [
         soapNotes,
         soapNoteRevisions,
         saveSoapDraft,
+        finalizeSoapNote,
       ]
     )
 
