@@ -4,17 +4,31 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
-  useState,
   type ReactNode,
 } from "react"
 
+import type { AppointmentRecord } from "@/features/appointments/types/appointment.types"
 import { MOCK_CONSULTATIONS } from "@/features/consultations/data/consultation.mock-data"
+import { usePersistentDevelopmentState } from "@/hooks/use-persistent-development-state"
 import type { ConsultationEncounter } from "@/features/consultations/types/consultation.types"
+
+const CONSULTATION_STORAGE_KEY =
+  "galenmed:development:consultations:v2"
+
+const INITIAL_CONSULTATIONS:
+  ConsultationEncounter[] = [
+  ...MOCK_CONSULTATIONS,
+]
 
 interface ConsultationContextValue {
   consultations: ConsultationEncounter[]
+
+  queueAppointmentConsultation: (
+    appointment: AppointmentRecord
+  ) => ConsultationEncounter
 
   startConsultation: (
     consultationId: string
@@ -44,12 +58,101 @@ interface ConsultationProviderProps {
   children: ReactNode
 }
 
+function createTemporaryConsultationId(): string {
+  if (
+    typeof globalThis.crypto !==
+      "undefined" &&
+    "randomUUID" in globalThis.crypto
+  ) {
+    return `consultation-${globalThis.crypto.randomUUID()}`
+  }
+
+  return `consultation-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`
+}
+
+function generateConsultationNumber(
+  consultations:
+    readonly ConsultationEncounter[],
+  year: number
+): string {
+  const prefix = `GM-CON-${year}-`
+
+  const highestSequence =
+    consultations.reduce(
+      (highest, consultation) => {
+        if (
+          !consultation.consultationNumber.startsWith(
+            prefix
+          )
+        ) {
+          return highest
+        }
+
+        const sequence = Number(
+          consultation.consultationNumber.slice(
+            prefix.length
+          )
+        )
+
+        return (
+          Number.isInteger(sequence) &&
+          sequence > highest
+            ? sequence
+            : highest
+        )
+      },
+      0
+    )
+
+  return `${prefix}${String(
+    highestSequence + 1
+  ).padStart(6, "0")}`
+}
+
+function getNextQueueNumber(
+  consultations:
+    readonly ConsultationEncounter[],
+  scheduledAt: string
+): number {
+  const scheduledDate =
+    scheduledAt.slice(0, 10)
+
+  const highestQueueNumber =
+    consultations.reduce(
+      (highest, consultation) => {
+        if (
+          consultation.scheduledAt.slice(
+            0,
+            10
+          ) !== scheduledDate
+        ) {
+          return highest
+        }
+
+        return Math.max(
+          highest,
+          consultation.queueNumber ?? 0
+        )
+      },
+      0
+    )
+
+  return highestQueueNumber + 1
+}
 export function ConsultationProvider({
   children,
 }: ConsultationProviderProps) {
-  const [consultations, setConsultations] =
-    useState<ConsultationEncounter[]>(
-      () => [...MOCK_CONSULTATIONS]
+  const [
+    consultations,
+    setConsultations,
+  ] =
+    usePersistentDevelopmentState<
+      ConsultationEncounter[]
+    >(
+      CONSULTATION_STORAGE_KEY,
+      INITIAL_CONSULTATIONS
     )
 
   const consultationsRef =
@@ -57,6 +160,138 @@ export function ConsultationProvider({
       consultations
     )
 
+  useEffect(() => {
+    consultationsRef.current =
+      consultations
+  }, [consultations])
+
+  const queueAppointmentConsultation =
+    useCallback(
+      (
+        appointment: AppointmentRecord
+      ): ConsultationEncounter => {
+        const existingConsultation =
+          consultationsRef.current.find(
+            (consultation) =>
+              consultation.id ===
+                appointment.linkedConsultationId ||
+              consultation.consultationNumber ===
+                appointment.linkedConsultationNumber
+          )
+
+        if (existingConsultation) {
+          return existingConsultation
+        }
+
+        if (
+          appointment.status !==
+          "checked-in"
+        ) {
+          throw new Error(
+            "Only a checked-in appointment can be sent to the consultation queue."
+          )
+        }
+
+        const scheduledDate =
+          new Date(
+            appointment.scheduledStartAt
+          )
+
+        const scheduledYear =
+          Number.isNaN(
+            scheduledDate.getTime()
+          )
+            ? new Date().getFullYear()
+            : scheduledDate.getFullYear()
+
+        const now =
+          new Date().toISOString()
+
+        const newConsultation:
+          ConsultationEncounter = {
+          id:
+            createTemporaryConsultationId(),
+
+          consultationNumber:
+            generateConsultationNumber(
+              consultationsRef.current,
+              scheduledYear
+            ),
+
+          patientId:
+            appointment.patientId,
+
+          scheduledAt:
+            appointment.scheduledStartAt,
+
+          checkedInAt:
+            appointment.checkedInAt ??
+            now,
+
+          startedAt: null,
+          completedAt: null,
+          cancelledAt: null,
+
+          status: "waiting",
+
+          priority:
+            appointment.priority,
+
+          mode:
+            appointment.mode,
+
+          visitType:
+            appointment.visitType,
+
+          departmentId:
+            appointment.departmentId,
+
+          departmentName:
+            appointment.departmentName,
+
+          doctorId:
+            appointment.doctorId,
+
+          doctorName:
+            appointment.doctorName,
+
+          chiefComplaint:
+            appointment.chiefComplaint,
+
+          queueNumber:
+            getNextQueueNumber(
+              consultationsRef.current,
+              appointment.scheduledStartAt
+            ),
+
+          roomName:
+            appointment.roomName,
+
+          administrativeNotes:
+            `Created from ${appointment.appointmentNumber}.`,
+
+          cancellationReason: null,
+
+          createdAt: now,
+          updatedAt: now,
+        }
+
+        const nextConsultations = [
+          newConsultation,
+          ...consultationsRef.current,
+        ]
+
+        consultationsRef.current =
+          nextConsultations
+
+        setConsultations(
+          nextConsultations
+        )
+
+        return newConsultation
+      },
+      [setConsultations]
+    )
   const startConsultation = useCallback(
     (
       consultationId: string
@@ -114,7 +349,7 @@ export function ConsultationProvider({
 
       return updatedConsultation
     },
-    []
+    [setConsultations]
   )
 
   const completeConsultation = useCallback(
@@ -173,7 +408,7 @@ export function ConsultationProvider({
 
       return completedConsultation
     },
-    []
+    [setConsultations]
   )
   const cancelConsultation = useCallback(
     (
@@ -241,7 +476,7 @@ export function ConsultationProvider({
 
       return updatedConsultation
     },
-    []
+    [setConsultations]
   )
 
   const markConsultationNoShow =
@@ -295,13 +530,14 @@ export function ConsultationProvider({
 
         return updatedConsultation
       },
-      []
+      [setConsultations]
     )
 
   const contextValue =
     useMemo<ConsultationContextValue>(
       () => ({
         consultations,
+        queueAppointmentConsultation,
         startConsultation,
         completeConsultation,
         cancelConsultation,
@@ -309,6 +545,7 @@ export function ConsultationProvider({
       }),
       [
         consultations,
+        queueAppointmentConsultation,
         startConsultation,
         completeConsultation,
         cancelConsultation,

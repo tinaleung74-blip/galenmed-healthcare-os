@@ -1,13 +1,5 @@
-import { CalendarDays } from "lucide-react"
+﻿import { AppointmentDashboardPage } from "@/features/appointments/components/appointment-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Appointments"
-      description="Schedule and manage patient appointments and provider availability."
-      icon={CalendarDays}
-    />
-  )
+export default function AppointmentsPage() {
+  return <AppointmentDashboardPage />
 }
