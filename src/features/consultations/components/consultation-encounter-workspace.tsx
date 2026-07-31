@@ -10,6 +10,7 @@ import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 
+import { ConsultationAuditWorkspace } from "@/features/consultations/components/consultation-audit-workspace"
 import { ConsultationClinicalContext } from "@/features/consultations/components/consultation-clinical-context"
 import { ConsultationDiagnosisWorkspace } from "@/features/consultations/components/consultation-diagnosis-workspace"
 import { ConsultationFinalizationWorkspace } from "@/features/consultations/components/consultation-finalization-workspace"
@@ -326,6 +327,9 @@ export function ConsultationEncounterWorkspace({
           the linked patient record could not be found.
         </div>
       ) : null}
+      <ConsultationAuditWorkspace
+        consultation={currentConsultation}
+      />
     </div>
   )
 }
