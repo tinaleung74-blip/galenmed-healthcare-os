@@ -1,9 +1,8 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import {
   ArrowLeft,
-  ClipboardList,
   FileSignature,
   HeartPulse,
   Pill,
@@ -19,6 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { ConsultationClinicalContext } from "@/features/consultations/components/consultation-clinical-context"
+import { ConsultationSoapNoteEditor } from "@/features/consultations/components/consultation-soap-note-editor"
 import {
   ConsultationPriorityBadge,
   ConsultationStatusBadge,
@@ -27,6 +28,7 @@ import {
   CONSULTATION_MODE_LABELS,
   CONSULTATION_VISIT_TYPE_LABELS,
 } from "@/features/consultations/constants/consultation.constants"
+import { useConsultationEmr } from "@/features/consultations/providers/consultation-emr-provider"
 import { useConsultations } from "@/features/consultations/providers/consultation-provider"
 import { usePatients } from "@/features/patients/providers/patient-provider"
 import {
@@ -45,6 +47,9 @@ export function ConsultationEncounterWorkspace({
     consultations,
     startConsultation,
   } = useConsultations()
+
+  const { soapNotes } =
+    useConsultationEmr()
 
   const { patients } = usePatients()
 
@@ -94,12 +99,21 @@ export function ConsultationEncounterWorkspace({
     patients.find(
       (candidatePatient) =>
         candidatePatient.id ===
-        consultation.patientId
+        currentConsultation.patientId
+    ) ?? null
+
+  const soapNote =
+    soapNotes.find(
+      (note) =>
+        note.consultationId ===
+        currentConsultation.id
     ) ?? null
 
   function handleStartConsultation() {
     try {
-      startConsultation(currentConsultation.id)
+      startConsultation(
+        currentConsultation.id
+      )
 
       toast.success(
         "Consultation started",
@@ -119,11 +133,23 @@ export function ConsultationEncounterWorkspace({
   }
 
   const isCompleted =
-    consultation.status === "completed"
+    currentConsultation.status ===
+    "completed"
 
   const isUnavailable =
-    consultation.status === "cancelled" ||
-    consultation.status === "no-show"
+    currentConsultation.status ===
+      "cancelled" ||
+    currentConsultation.status ===
+      "no-show"
+
+  const isWaiting =
+    currentConsultation.status ===
+    "waiting"
+
+  const canShowClinicalWorkspace =
+    currentConsultation.status ===
+      "in-progress" ||
+    isCompleted
 
   return (
     <div className="space-y-6">
@@ -149,37 +175,40 @@ export function ConsultationEncounterWorkspace({
               </h1>
 
               <ConsultationStatusBadge
-                status={consultation.status}
+                status={
+                  currentConsultation.status
+                }
               />
 
               <ConsultationPriorityBadge
-                priority={consultation.priority}
+                priority={
+                  currentConsultation.priority
+                }
               />
             </div>
 
             <p className="mt-2 font-mono text-sm text-teal-700">
               {
-                consultation.consultationNumber
+                currentConsultation.consultationNumber
               }
             </p>
 
             <p className="mt-2 text-sm text-muted-foreground">
               {
                 CONSULTATION_VISIT_TYPE_LABELS[
-                  consultation.visitType
+                  currentConsultation.visitType
                 ]
               }
               {" · "}
               {
                 CONSULTATION_MODE_LABELS[
-                  consultation.mode
+                  currentConsultation.mode
                 ]
               }
             </p>
           </div>
 
-          {consultation.status ===
-          "waiting" ? (
+          {isWaiting ? (
             <Button
               type="button"
               className="bg-teal-700 text-white hover:bg-teal-800"
@@ -196,9 +225,10 @@ export function ConsultationEncounterWorkspace({
             <p className="text-xs text-muted-foreground">
               Scheduled
             </p>
+
             <p className="mt-1 text-sm font-medium">
               {formatPatientDateTime(
-                consultation.scheduledAt
+                currentConsultation.scheduledAt
               )}
             </p>
           </div>
@@ -207,8 +237,9 @@ export function ConsultationEncounterWorkspace({
             <p className="text-xs text-muted-foreground">
               Doctor
             </p>
+
             <p className="mt-1 text-sm font-medium">
-              {consultation.doctorName}
+              {currentConsultation.doctorName}
             </p>
           </div>
 
@@ -216,8 +247,11 @@ export function ConsultationEncounterWorkspace({
             <p className="text-xs text-muted-foreground">
               Department
             </p>
+
             <p className="mt-1 text-sm font-medium">
-              {consultation.departmentName}
+              {
+                currentConsultation.departmentName
+              }
             </p>
           </div>
 
@@ -225,8 +259,11 @@ export function ConsultationEncounterWorkspace({
             <p className="text-xs text-muted-foreground">
               Chief complaint
             </p>
+
             <p className="mt-1 text-sm font-medium">
-              {consultation.chiefComplaint}
+              {
+                currentConsultation.chiefComplaint
+              }
             </p>
           </div>
         </div>
@@ -235,34 +272,50 @@ export function ConsultationEncounterWorkspace({
       {isUnavailable ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
           This consultation is{" "}
-          {consultation.status === "cancelled"
+          {currentConsultation.status ===
+          "cancelled"
             ? "cancelled"
             : "marked as no-show"}
           . Clinical documentation cannot be entered.
         </div>
-      ) : (
-        <>
-          {isCompleted ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
-              This is a completed encounter. The future
-              EMR workspace will open in read-only mode
-              unless an authorized amendment workflow is
-              used.
-            </div>
-          ) : null}
+      ) : null}
 
-          <section className="grid gap-4 md:grid-cols-2">
+      {isWaiting ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+          Start the consultation before entering or
+          saving clinical documentation.
+        </div>
+      ) : null}
+
+      {isCompleted ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
+          This completed encounter is read-only. A future
+          authorized amendment workflow will be required
+          for post-finalization changes.
+        </div>
+      ) : null}
+
+      {canShowClinicalWorkspace &&
+      patient ? (
+        <>
+          <ConsultationClinicalContext
+            patient={patient}
+          />
+
+          <ConsultationSoapNoteEditor
+            key={`${soapNote?.id ?? currentConsultation.id}-${soapNote?.version ?? 0}`}
+            consultation={
+              currentConsultation
+            }
+            note={soapNote}
+          />
+
+          <section className="grid gap-4 md:grid-cols-3">
             {[
-              {
-                title: "SOAP Notes",
-                description:
-                  "Subjective, Objective, Assessment, and Plan.",
-                icon: ClipboardList,
-              },
               {
                 title: "Diagnosis & ICD-10",
                 description:
-                  "Structured diagnoses and clinical coding.",
+                  "Structured diagnosis list and clinical coding.",
                 icon: HeartPulse,
               },
               {
@@ -272,9 +325,10 @@ export function ConsultationEncounterWorkspace({
                 icon: Pill,
               },
               {
-                title: "Follow-up & Signature",
+                title:
+                  "Follow-up & Signature",
                 description:
-                  "Follow-up plan, finalization, and digital signature.",
+                  "Follow-up plan, digital signature, and encounter finalization.",
                 icon: FileSignature,
               },
             ].map((section) => {
@@ -301,8 +355,7 @@ export function ConsultationEncounterWorkspace({
                     </p>
 
                     <p className="mt-4 text-xs font-medium text-teal-700">
-                      EMR workspace will be implemented in
-                      the next Consultation increment.
+                      Next Consultation increment
                     </p>
                   </CardContent>
                 </Card>
@@ -310,7 +363,15 @@ export function ConsultationEncounterWorkspace({
             })}
           </section>
         </>
-      )}
+      ) : null}
+
+      {canShowClinicalWorkspace &&
+      !patient ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
+          Clinical documentation is unavailable because
+          the linked patient record could not be found.
+        </div>
+      ) : null}
     </div>
   )
 }
