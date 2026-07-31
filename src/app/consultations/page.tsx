@@ -1,13 +1,5 @@
-import { Stethoscope } from "lucide-react"
+﻿import { ConsultationDashboardPage } from "@/features/consultations/components/consultation-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Consultations"
-      description="Manage clinical encounters, assessments, diagnoses, and treatment plans."
-      icon={Stethoscope}
-    />
-  )
+export default function ConsultationsPage() {
+  return <ConsultationDashboardPage />
 }
