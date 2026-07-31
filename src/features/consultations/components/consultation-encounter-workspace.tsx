@@ -1,10 +1,9 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
 import {
   ArrowLeft,
   FileSignature,
-  HeartPulse,
   Pill,
   Play,
   Stethoscope,
@@ -19,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ConsultationClinicalContext } from "@/features/consultations/components/consultation-clinical-context"
+import { ConsultationDiagnosisWorkspace } from "@/features/consultations/components/consultation-diagnosis-workspace"
 import { ConsultationSoapNoteEditor } from "@/features/consultations/components/consultation-soap-note-editor"
 import {
   ConsultationPriorityBadge,
@@ -310,14 +310,12 @@ export function ConsultationEncounterWorkspace({
             note={soapNote}
           />
 
-          <section className="grid gap-4 md:grid-cols-3">
+          <ConsultationDiagnosisWorkspace
+            consultation={currentConsultation}
+          />
+
+          <section className="grid gap-4 md:grid-cols-2">
             {[
-              {
-                title: "Diagnosis & ICD-10",
-                description:
-                  "Structured diagnosis list and clinical coding.",
-                icon: HeartPulse,
-              },
               {
                 title: "Prescriptions",
                 description:
