@@ -4,7 +4,6 @@ import Link from "next/link"
 import {
   ArrowLeft,
   FileSignature,
-  Pill,
   Play,
   Stethoscope,
 } from "lucide-react"
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/card"
 import { ConsultationClinicalContext } from "@/features/consultations/components/consultation-clinical-context"
 import { ConsultationDiagnosisWorkspace } from "@/features/consultations/components/consultation-diagnosis-workspace"
+import { ConsultationPrescriptionWorkspace } from "@/features/consultations/components/consultation-prescription-workspace"
 import { ConsultationSoapNoteEditor } from "@/features/consultations/components/consultation-soap-note-editor"
 import {
   ConsultationPriorityBadge,
@@ -199,7 +199,7 @@ export function ConsultationEncounterWorkspace({
                   currentConsultation.visitType
                 ]
               }
-              {" · "}
+              {" Â· "}
               {
                 CONSULTATION_MODE_LABELS[
                   currentConsultation.mode
@@ -314,14 +314,12 @@ export function ConsultationEncounterWorkspace({
             consultation={currentConsultation}
           />
 
-          <section className="grid gap-4 md:grid-cols-2">
+          <ConsultationPrescriptionWorkspace
+            consultation={currentConsultation}
+          />
+
+          <section className="grid gap-4">
             {[
-              {
-                title: "Prescriptions",
-                description:
-                  "Medication orders, instructions, and safety checks.",
-                icon: Pill,
-              },
               {
                 title:
                   "Follow-up & Signature",

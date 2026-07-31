@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ConsultationDiagnosisProvider } from "@/features/consultations/providers/consultation-diagnosis-provider"
 import { ConsultationEmrProvider } from "@/features/consultations/providers/consultation-emr-provider"
+import { ConsultationPrescriptionProvider } from "@/features/consultations/providers/consultation-prescription-provider"
 import { ConsultationProvider } from "@/features/consultations/providers/consultation-provider"
 import { PatientAllergyProvider } from "@/features/patients/providers/patient-allergy-provider"
 import { PatientDocumentsProvider } from "@/features/patients/providers/patient-documents-provider"
@@ -51,7 +52,9 @@ export default function RootLayout({
                       <ConsultationProvider>
                         <ConsultationEmrProvider>
                           <ConsultationDiagnosisProvider>
-                            {children}
+                            <ConsultationPrescriptionProvider>
+                              {children}
+                            </ConsultationPrescriptionProvider>
                           </ConsultationDiagnosisProvider>
                         </ConsultationEmrProvider>
                       </ConsultationProvider>
