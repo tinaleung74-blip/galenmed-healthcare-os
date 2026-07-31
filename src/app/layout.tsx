@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ConsultationProvider } from "@/features/consultations/providers/consultation-provider"
 import { PatientAllergyProvider } from "@/features/patients/providers/patient-allergy-provider"
 import { PatientDocumentsProvider } from "@/features/patients/providers/patient-documents-provider"
 import { PatientInsuranceProvider } from "@/features/patients/providers/patient-insurance-provider"
@@ -45,7 +46,9 @@ export default function RootLayout({
                 <PatientAllergyProvider>
                   <PatientInsuranceProvider>
                     <PatientDocumentsProvider>
-                      {children}
+                      <ConsultationProvider>
+                        {children}
+                      </ConsultationProvider>
                     </PatientDocumentsProvider>
                   </PatientInsuranceProvider>
                 </PatientAllergyProvider>
