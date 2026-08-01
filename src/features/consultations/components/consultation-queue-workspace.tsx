@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   useMemo,
@@ -524,7 +524,7 @@ export function ConsultationQueueWorkspace() {
 
       router.push(
         `/consultations/${encodeURIComponent(
-          encounter.consultationNumber
+          encounter.id
         )}`
       )
     } catch {

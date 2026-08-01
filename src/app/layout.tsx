@@ -1,7 +1,9 @@
-﻿import type { Metadata } from "next"
+import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
 import { Toaster } from "@/components/ui/sonner"
+import { AppointmentAuditProvider } from "@/features/appointments/providers/appointment-audit-provider"
+import { AppointmentProvider } from "@/features/appointments/providers/appointment-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ConsultationDiagnosisProvider } from "@/features/consultations/providers/consultation-diagnosis-provider"
 import { ConsultationEmrProvider } from "@/features/consultations/providers/consultation-emr-provider"
@@ -50,7 +52,9 @@ export default function RootLayout({
                 <PatientAllergyProvider>
                   <PatientInsuranceProvider>
                     <PatientDocumentsProvider>
-                      <ConsultationProvider>
+                      <AppointmentProvider>
+                        <AppointmentAuditProvider>
+                          <ConsultationProvider>
                         <ConsultationEmrProvider>
                           <ConsultationDiagnosisProvider>
                             <ConsultationPrescriptionProvider>
@@ -60,7 +64,9 @@ export default function RootLayout({
                             </ConsultationPrescriptionProvider>
                           </ConsultationDiagnosisProvider>
                         </ConsultationEmrProvider>
-                      </ConsultationProvider>
+                          </ConsultationProvider>
+                        </AppointmentAuditProvider>
+                      </AppointmentProvider>
                     </PatientDocumentsProvider>
                   </PatientInsuranceProvider>
                 </PatientAllergyProvider>

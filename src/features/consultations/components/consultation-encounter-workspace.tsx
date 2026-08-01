@@ -52,10 +52,8 @@ export function ConsultationEncounterWorkspace({
   const consultation =
     consultations.find(
       (candidateConsultation) =>
-        candidateConsultation.consultationNumber ===
-          consultationReference ||
         candidateConsultation.id ===
-          consultationReference
+        consultationReference
     ) ?? null
 
   if (!consultation) {
