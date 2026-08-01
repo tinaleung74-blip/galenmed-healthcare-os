@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react"
 
+import { useAppointments } from "@/features/appointments/providers/appointment-provider"
 import type { AppointmentRecord } from "@/features/appointments/types/appointment.types"
 import { MOCK_CONSULTATIONS } from "@/features/consultations/data/consultation.mock-data"
 import { usePersistentDevelopmentState } from "@/hooks/use-persistent-development-state"
@@ -144,6 +145,11 @@ function getNextQueueNumber(
 export function ConsultationProvider({
   children,
 }: ConsultationProviderProps) {
+  const {
+    markAppointmentInConsultation,
+    completeAppointmentFromConsultation,
+  } = useAppointments()
+
   const [
     consultations,
     setConsultations,
@@ -312,6 +318,13 @@ export function ConsultationProvider({
         existingConsultation.status ===
         "in-progress"
       ) {
+        markAppointmentInConsultation(
+          existingConsultation.id,
+          existingConsultation.startedAt ??
+            new Date().toISOString(),
+          existingConsultation.doctorName
+        )
+
         return existingConsultation
       }
 
@@ -334,6 +347,12 @@ export function ConsultationProvider({
         updatedAt: now,
       }
 
+      markAppointmentInConsultation(
+        updatedConsultation.id,
+        now,
+        updatedConsultation.doctorName
+      )
+
       const nextConsultations =
         consultationsRef.current.map(
           (consultation) =>
@@ -349,7 +368,7 @@ export function ConsultationProvider({
 
       return updatedConsultation
     },
-    [setConsultations]
+    [markAppointmentInConsultation, setConsultations]
   )
 
   const completeConsultation = useCallback(
@@ -373,6 +392,13 @@ export function ConsultationProvider({
         existingConsultation.status ===
         "completed"
       ) {
+        completeAppointmentFromConsultation(
+          existingConsultation.id,
+          existingConsultation.completedAt ??
+            completedAt,
+          existingConsultation.doctorName
+        )
+
         return existingConsultation
       }
 
@@ -393,6 +419,12 @@ export function ConsultationProvider({
         updatedAt: completedAt,
       }
 
+      completeAppointmentFromConsultation(
+        completedConsultation.id,
+        completedAt,
+        completedConsultation.doctorName
+      )
+
       const nextConsultations =
         consultationsRef.current.map(
           (consultation) =>
@@ -408,7 +440,7 @@ export function ConsultationProvider({
 
       return completedConsultation
     },
-    [setConsultations]
+    [completeAppointmentFromConsultation, setConsultations]
   )
   const cancelConsultation = useCallback(
     (

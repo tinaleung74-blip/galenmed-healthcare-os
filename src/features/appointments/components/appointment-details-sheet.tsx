@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { AppointmentAuditHistory } from "@/features/appointments/components/appointment-audit-history"
 import {
   AppointmentPriorityBadge,
   AppointmentStatusBadge,
@@ -390,6 +391,10 @@ export function AppointmentDetailsSheet({
               />
             </dl>
           </section>
+
+          <AppointmentAuditHistory
+            appointment={appointment}
+          />
 
           {appointment.cancellationReason ? (
             <section className="rounded-xl border border-rose-200 bg-rose-50 p-4">

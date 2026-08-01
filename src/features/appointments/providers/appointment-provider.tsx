@@ -59,6 +59,18 @@ interface AppointmentContextValue {
     consultationNumber: string
   ) => AppointmentRecord
 
+  markAppointmentInConsultation: (
+    consultationId: string,
+    startedAt?: string,
+    updatedBy?: string
+  ) => AppointmentRecord | null
+
+  completeAppointmentFromConsultation: (
+    consultationId: string,
+    completedAt?: string,
+    updatedBy?: string
+  ) => AppointmentRecord | null
+
   confirmAppointment: (
     appointmentId: string
   ) => AppointmentRecord
@@ -783,6 +795,148 @@ export function AppointmentProvider({
       },
       [setAppointments]
     )
+  const markAppointmentInConsultation =
+    useCallback(
+      (
+        consultationId: string,
+        startedAt =
+          new Date().toISOString(),
+        updatedBy =
+          APPOINTMENT_SCHEDULING_ACTOR
+      ): AppointmentRecord | null => {
+        const appointment =
+          appointmentsRef.current.find(
+            (candidateAppointment) =>
+              candidateAppointment.linkedConsultationId ===
+              consultationId
+          ) ?? null
+
+        if (!appointment) {
+          return null
+        }
+
+        if (
+          appointment.status ===
+          "in-consultation"
+        ) {
+          return appointment
+        }
+
+        if (
+          appointment.status !==
+          "checked-in"
+        ) {
+          throw new Error(
+            "The linked appointment must be checked in before starting the consultation."
+          )
+        }
+
+        const updatedAppointment:
+          AppointmentRecord = {
+          ...appointment,
+
+          status: "in-consultation",
+
+          consultationStartedAt:
+            startedAt,
+
+          updatedBy,
+
+          updatedAt:
+            startedAt,
+        }
+
+        const nextAppointments =
+          appointmentsRef.current.map(
+            (currentAppointment) =>
+              currentAppointment.id ===
+              appointment.id
+                ? updatedAppointment
+                : currentAppointment
+          )
+
+        appointmentsRef.current =
+          nextAppointments
+
+        setAppointments(
+          nextAppointments
+        )
+
+        return updatedAppointment
+      },
+      [setAppointments]
+    )
+
+  const completeAppointmentFromConsultation =
+    useCallback(
+      (
+        consultationId: string,
+        completedAt =
+          new Date().toISOString(),
+        updatedBy =
+          APPOINTMENT_SCHEDULING_ACTOR
+      ): AppointmentRecord | null => {
+        const appointment =
+          appointmentsRef.current.find(
+            (candidateAppointment) =>
+              candidateAppointment.linkedConsultationId ===
+              consultationId
+          ) ?? null
+
+        if (!appointment) {
+          return null
+        }
+
+        if (
+          appointment.status ===
+          "completed"
+        ) {
+          return appointment
+        }
+
+        if (
+          appointment.status !==
+          "in-consultation"
+        ) {
+          throw new Error(
+            "The linked appointment must be in consultation before it can be completed."
+          )
+        }
+
+        const completedAppointment:
+          AppointmentRecord = {
+          ...appointment,
+
+          status: "completed",
+
+          completedAt,
+
+          updatedBy,
+
+          updatedAt:
+            completedAt,
+        }
+
+        const nextAppointments =
+          appointmentsRef.current.map(
+            (currentAppointment) =>
+              currentAppointment.id ===
+              appointment.id
+                ? completedAppointment
+                : currentAppointment
+          )
+
+        appointmentsRef.current =
+          nextAppointments
+
+        setAppointments(
+          nextAppointments
+        )
+
+        return completedAppointment
+      },
+      [setAppointments]
+    )
   const confirmAppointment =
     useCallback(
       (
@@ -1071,6 +1225,8 @@ export function AppointmentProvider({
         createAppointment,
         updateAppointment,
         linkAppointmentConsultation,
+        markAppointmentInConsultation,
+        completeAppointmentFromConsultation,
         confirmAppointment,
         checkInAppointment,
         cancelAppointment,
@@ -1081,6 +1237,8 @@ export function AppointmentProvider({
         createAppointment,
         updateAppointment,
         linkAppointmentConsultation,
+        markAppointmentInConsultation,
+        completeAppointmentFromConsultation,
         confirmAppointment,
         checkInAppointment,
         cancelAppointment,

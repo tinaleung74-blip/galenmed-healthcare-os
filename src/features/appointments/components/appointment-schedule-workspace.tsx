@@ -61,6 +61,7 @@ import {
   APPOINTMENT_STATUS_LABELS,
   DEFAULT_APPOINTMENT_FILTERS,
 } from "@/features/appointments/constants/appointment.constants"
+import { useAppointmentAudit } from "@/features/appointments/providers/appointment-audit-provider"
 import { useAppointments } from "@/features/appointments/providers/appointment-provider"
 import type { AppointmentFormValues } from "@/features/appointments/schemas/appointment.schema"
 import {
@@ -288,6 +289,10 @@ export function AppointmentScheduleWorkspace() {
 
   const { patients } =
     usePatients()
+
+  const {
+    recordAppointmentRevision,
+  } = useAppointmentAudit()
 
   const {
     appointments,
@@ -568,11 +573,19 @@ export function AppointmentScheduleWorkspace() {
       )
     }
 
+    const previousAppointment =
+      editingAppointment
+
     const appointment =
       updateAppointment(
-        editingAppointment.id,
+        previousAppointment.id,
         values
       )
+
+    recordAppointmentRevision(
+      previousAppointment,
+      appointment
+    )
 
     toast.success(
       "Appointment updated",
