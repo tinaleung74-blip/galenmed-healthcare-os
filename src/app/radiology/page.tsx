@@ -1,13 +1,5 @@
-import { ScanLine } from "lucide-react"
+﻿import { RadiologyDashboardPage } from "@/features/radiology/components/radiology-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Radiology"
-      description="Manage imaging requests, schedules, reports, and diagnostic results."
-      icon={ScanLine}
-    />
-  )
+export default function RadiologyPage() {
+  return <RadiologyDashboardPage />
 }

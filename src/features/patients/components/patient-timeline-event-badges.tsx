@@ -27,6 +27,9 @@ const categoryStyles: Record<
 
   laboratory:
     "border-teal-200 bg-teal-50 text-teal-700",
+
+  radiology:
+    "border-violet-200 bg-violet-50 text-violet-700",
 }
 
 const actionStyles: Record<

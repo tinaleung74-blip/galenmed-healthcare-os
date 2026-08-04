@@ -15,6 +15,7 @@ export const PATIENT_TIMELINE_CATEGORY_LABELS: Record<
   insurance: "Insurance",
   document: "Documents",
   laboratory: "Laboratory",
+  radiology: "Radiology",
 }
 
 export const PATIENT_TIMELINE_ACTION_LABELS: Record<
