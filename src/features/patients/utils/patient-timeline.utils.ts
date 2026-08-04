@@ -34,6 +34,18 @@ import type {
 import type {
   LaboratoryOrder,
 } from "@/features/laboratory/types/laboratory.types"
+import {
+  RADIOLOGY_FINDING_LEVEL_LABELS,
+} from "@/features/radiology/constants/radiology-report.constants"
+import {
+  RADIOLOGY_MODALITY_LABELS,
+} from "@/features/radiology/constants/radiology.constants"
+import type {
+  RadiologyReportRecord,
+} from "@/features/radiology/types/radiology-report.types"
+import type {
+  RadiologyOrder,
+} from "@/features/radiology/types/radiology.types"
 import type { MedicalHistoryRecord } from "@/features/patients/types/medical-history.types"
 import type { PatientAllergyRecord } from "@/features/patients/types/patient-allergy.types"
 import type { PatientDocumentRecord } from "@/features/patients/types/patient-document.types"
@@ -74,6 +86,12 @@ interface BuildPatientTimelineInput {
 
   laboratoryResultSets:
     readonly LaboratoryResultSet[]
+
+  radiologyOrders:
+    readonly RadiologyOrder[]
+
+  radiologyReports:
+    readonly RadiologyReportRecord[]
 }
 
 function getTimestamp(
@@ -159,6 +177,8 @@ export function buildPatientTimelineEvents({
   documentRecords,
   laboratoryOrders,
   laboratoryResultSets,
+  radiologyOrders,
+  radiologyReports,
 }: BuildPatientTimelineInput): PatientTimelineEvent[] {
   const events: PatientTimelineEvent[] = []
 
@@ -1265,6 +1285,174 @@ export function buildPatientTimelineEvents({
               resultSet.releaseNote ??
               "No note recorded",
             sensitive: true,
+          },
+        ],
+      })
+    })
+  radiologyReports
+    .filter(
+      (report) =>
+        report.patientId ===
+          patient.id &&
+        report.status ===
+          "released"
+    )
+    .forEach((report) => {
+      const order =
+        radiologyOrders.find(
+          (candidateOrder) =>
+            candidateOrder.id ===
+            report.orderId
+        ) ?? null
+
+      const releasedAt =
+        report.releasedAt
+
+      if (!order || !releasedAt) {
+        return
+      }
+
+      const communicationStatus =
+        report.findingLevel ===
+          "critical"
+          ? report
+              .criticalCommunicatedAt
+            ? "Critical communication documented"
+            : "Critical communication not recorded"
+          : "Not applicable"
+
+      events.push({
+        id: createEventId(
+          "radiology-report",
+          report.id,
+          "released"
+        ),
+
+        patientId:
+          patient.id,
+
+        occurredAt:
+          releasedAt,
+
+        category: "radiology",
+        action: "released",
+
+        title: `${report.procedureName} final report released`,
+
+        summary: `${report.procedureName} was released as a ${RADIOLOGY_FINDING_LEVEL_LABELS[
+          report.findingLevel
+        ].toLowerCase()}.`,
+
+        actor:
+          report.releasedBy,
+
+        reference:
+          report.procedureName,
+
+        sourceSection: "timeline",
+
+        sourceRecordId:
+          report.id,
+
+        recordStatus: "current",
+
+        details: [
+          {
+            label:
+              "Imaging procedure",
+            value:
+              report.procedureName,
+          },
+          {
+            label:
+              "Procedure code",
+            value:
+              report.procedureCode,
+          },
+          {
+            label: "Modality",
+            value:
+              RADIOLOGY_MODALITY_LABELS[
+                report.modality
+              ],
+          },
+          {
+            label: "Body region",
+            value:
+              report.bodyRegion,
+          },
+          {
+            label:
+              "Finding level",
+            value:
+              RADIOLOGY_FINDING_LEVEL_LABELS[
+                report.findingLevel
+              ],
+          },
+          {
+            label:
+              "Radiology order",
+            value:
+              order.orderNumber,
+            sensitive: true,
+          },
+          {
+            label:
+              "Verified by",
+            value:
+              report.verifiedBy ??
+              "Not recorded",
+          },
+          {
+            label:
+              "Released by",
+            value:
+              report.releasedBy ??
+              "Not recorded",
+          },
+          {
+            label:
+              "Released at",
+            value:
+              formatPatientDateTime(
+                releasedAt
+              ),
+          },
+          {
+            label:
+              "Critical communication",
+            value:
+              communicationStatus,
+          },
+          {
+            label: "Impression",
+            value:
+              report.impression,
+            sensitive: true,
+          },
+          {
+            label:
+              "Critical-finding summary",
+            value:
+              report
+                .criticalFindingSummary ??
+              "Not applicable",
+            sensitive:
+              Boolean(
+                report
+                  .criticalFindingSummary
+              ),
+          },
+          {
+            label:
+              "Release note",
+            value:
+              report.releaseNote ??
+              "No note recorded",
+            sensitive:
+              Boolean(
+                report.releaseNote
+              ),
           },
         ],
       })
