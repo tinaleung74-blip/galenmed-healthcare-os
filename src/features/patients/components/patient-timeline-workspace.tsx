@@ -39,6 +39,7 @@ import { useLaboratoryResults } from "@/features/laboratory/providers/laboratory
 import { useLaboratory } from "@/features/laboratory/providers/laboratory-provider"
 import { useRadiologyReports } from "@/features/radiology/providers/radiology-report-provider"
 import { useRadiology } from "@/features/radiology/providers/radiology-provider"
+import { usePharmacy } from "@/features/pharmacy/providers/pharmacy-provider"
 import { usePatientAllergies } from "@/features/patients/providers/patient-allergy-provider"
 import { usePatientDocuments } from "@/features/patients/providers/patient-documents-provider"
 import { usePatientInsurance } from "@/features/patients/providers/patient-insurance-provider"
@@ -292,6 +293,11 @@ export function PatientTimelineWorkspace({
       radiologyReports,
   } = useRadiologyReports()
 
+  const {
+    prescriptions:
+      pharmacyPrescriptions,
+  } = usePharmacy()
+
   const [filters, setFilters] =
     useState<PatientTimelineFilters>(() => ({
       ...DEFAULT_PATIENT_TIMELINE_FILTERS,
@@ -322,6 +328,7 @@ export function PatientTimelineWorkspace({
         laboratoryResultSets,
         radiologyOrders,
         radiologyReports,
+        pharmacyPrescriptions,
       }),
     [
       patient,
@@ -334,6 +341,7 @@ export function PatientTimelineWorkspace({
       laboratoryResultSets,
       radiologyOrders,
       radiologyReports,
+      pharmacyPrescriptions,
     ]
   )
 
@@ -392,7 +400,8 @@ export function PatientTimelineWorkspace({
         event.category === "vital-signs" ||
         event.category === "allergy" ||
         event.category === "laboratory" ||
-        event.category === "radiology"
+        event.category === "radiology" ||
+        event.category === "pharmacy"
     ).length
 
   const verifiedEventCount =

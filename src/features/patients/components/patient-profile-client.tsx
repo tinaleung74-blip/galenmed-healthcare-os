@@ -15,6 +15,7 @@ import { PatientProfileOverview } from "@/features/patients/components/patient-p
 import { PatientProfileSectionPlaceholder } from "@/features/patients/components/patient-profile-section-placeholder"
 import { PatientLaboratoryResultHistory } from "@/features/patients/components/patient-laboratory-result-history"
 import { PatientRadiologyReportHistory } from "@/features/patients/components/patient-radiology-report-history"
+import { PatientMedicationHistory } from "@/features/patients/components/patient-medication-history"
 import { PatientTimelineWorkspace } from "@/features/patients/components/patient-timeline-workspace"
 import { VitalSignsWorkspace } from "@/features/patients/components/vital-signs-workspace"
 import {
@@ -166,6 +167,12 @@ export function PatientProfileClient({
 
         {activeSection === "timeline" ? (
           <PatientRadiologyReportHistory
+            patientId={patient.id}
+          />
+        ) : null}
+
+        {activeSection === "timeline" ? (
+          <PatientMedicationHistory
             patientId={patient.id}
           />
         ) : null}

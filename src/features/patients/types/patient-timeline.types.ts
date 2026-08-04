@@ -7,6 +7,7 @@ export const PATIENT_TIMELINE_EVENT_CATEGORIES = [
   "document",
   "laboratory",
   "radiology",
+  "pharmacy",
 ] as const
 
 export type PatientTimelineEventCategory =
