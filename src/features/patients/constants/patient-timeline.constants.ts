@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   PatientTimelineEventAction,
   PatientTimelineEventCategory,
   PatientTimelineFilters,
@@ -14,6 +14,7 @@ export const PATIENT_TIMELINE_CATEGORY_LABELS: Record<
   allergy: "Allergies",
   insurance: "Insurance",
   document: "Documents",
+  laboratory: "Laboratory",
 }
 
 export const PATIENT_TIMELINE_ACTION_LABELS: Record<
@@ -27,6 +28,7 @@ export const PATIENT_TIMELINE_ACTION_LABELS: Record<
   verified: "Verified",
   updated: "Updated",
   archived: "Archived",
+  released: "Released",
 }
 
 export const PATIENT_TIMELINE_DATE_FILTER_LABELS =

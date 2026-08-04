@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import type { ReactNode } from "react"
 import {
@@ -26,6 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { LaboratoryAuditHistory } from "@/features/laboratory/components/laboratory-audit-history"
+import { LaboratoryResultsWorkspace } from "@/features/laboratory/components/laboratory-results-workspace"
 import {
   LaboratoryOrderPriorityBadge,
   LaboratoryOrderStatusBadge,
@@ -484,6 +486,13 @@ export function LaboratoryOrderDetailsSheet({
               </div>
             )}
           </section>
+          <LaboratoryResultsWorkspace
+            order={order}
+          />
+
+          <LaboratoryAuditHistory
+            order={order}
+          />
         </div>
 
         <SheetFooter className="gap-3 border-t bg-slate-50 p-4">

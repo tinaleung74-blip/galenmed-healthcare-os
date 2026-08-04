@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   createContext,
@@ -67,6 +67,27 @@ interface LaboratoryContextValue {
   startLaboratoryProcessing: (
     orderId: string,
     startedBy?: string
+  ) => LaboratoryOrder
+
+  completeLaboratoryOrderItem: (
+    orderId: string,
+    orderItemId: string,
+    completedBy: string,
+    completedAt?: string
+  ) => LaboratoryOrder
+
+  verifyLaboratoryOrderItem: (
+    orderId: string,
+    orderItemId: string,
+    verifiedBy: string,
+    verifiedAt?: string
+  ) => LaboratoryOrder
+
+  releaseLaboratoryOrderItem: (
+    orderId: string,
+    orderItemId: string,
+    releasedBy: string,
+    releasedAt?: string
   ) => LaboratoryOrder
 
   rejectLaboratorySpecimen: (
@@ -749,6 +770,371 @@ export function LaboratoryProvider({
       [saveOrder]
     )
 
+  const completeLaboratoryOrderItem =
+    useCallback(
+      (
+        orderId: string,
+        orderItemId: string,
+        completedBy: string,
+        completedAt =
+          new Date().toISOString()
+      ): LaboratoryOrder => {
+        const normalizedActor =
+          completedBy.trim()
+
+        if (
+          normalizedActor.length < 2
+        ) {
+          throw new Error(
+            "Laboratory analyst name is required."
+          )
+        }
+
+        const order =
+          getLaboratoryOrderOrThrow(
+            ordersRef.current,
+            orderId
+          )
+
+        const orderItem =
+          order.items.find(
+            (item) =>
+              item.id === orderItemId
+          )
+
+        if (!orderItem) {
+          throw new Error(
+            "The laboratory-order item was not found."
+          )
+        }
+
+        if (
+          [
+            "completed",
+            "verified",
+            "released",
+          ].includes(orderItem.status)
+        ) {
+          return order
+        }
+
+        if (
+          order.status !==
+            "in-process" ||
+          orderItem.status !==
+            "in-process"
+        ) {
+          throw new Error(
+            "Only an in-process laboratory test can be completed."
+          )
+        }
+
+        const updatedItems =
+          order.items.map((item) =>
+            item.id === orderItemId
+              ? {
+                  ...item,
+                  status:
+                    "completed" as const,
+                }
+              : item
+          )
+
+        const activeItems =
+          updatedItems.filter(
+            (item) =>
+              item.status !==
+              "cancelled"
+          )
+
+        const allItemsCompleted =
+          activeItems.length > 0 &&
+          activeItems.every(
+            (item) =>
+              [
+                "completed",
+                "verified",
+                "released",
+              ].includes(item.status)
+          )
+
+        const updatedOrder:
+          LaboratoryOrder = {
+          ...order,
+
+          items: updatedItems,
+
+          status:
+            allItemsCompleted
+              ? "completed"
+              : "in-process",
+
+          completedAt:
+            allItemsCompleted
+              ? completedAt
+              : order.completedAt,
+
+          completedBy:
+            allItemsCompleted
+              ? normalizedActor
+              : order.completedBy,
+
+          updatedAt: completedAt,
+
+          updatedBy:
+            normalizedActor,
+        }
+
+        return saveOrder(
+          updatedOrder
+        )
+      },
+      [saveOrder]
+    )
+
+  const verifyLaboratoryOrderItem =
+    useCallback(
+      (
+        orderId: string,
+        orderItemId: string,
+        verifiedBy: string,
+        verifiedAt =
+          new Date().toISOString()
+      ): LaboratoryOrder => {
+        const normalizedActor =
+          verifiedBy.trim()
+
+        if (
+          normalizedActor.length < 2
+        ) {
+          throw new Error(
+            "Verifying laboratory professional is required."
+          )
+        }
+
+        const order =
+          getLaboratoryOrderOrThrow(
+            ordersRef.current,
+            orderId
+          )
+
+        const orderItem =
+          order.items.find(
+            (item) =>
+              item.id === orderItemId
+          )
+
+        if (!orderItem) {
+          throw new Error(
+            "The laboratory-order item was not found."
+          )
+        }
+
+        if (
+          orderItem.status ===
+            "verified" ||
+          orderItem.status ===
+            "released"
+        ) {
+          return order
+        }
+
+        if (
+          (
+            order.status !==
+              "completed" &&
+            order.status !==
+              "verified"
+          ) ||
+          orderItem.status !==
+            "completed"
+        ) {
+          throw new Error(
+            "All result sets must be completed before technical verification."
+          )
+        }
+
+        const updatedItems =
+          order.items.map((item) =>
+            item.id === orderItemId
+              ? {
+                  ...item,
+                  status:
+                    "verified" as const,
+                }
+              : item
+          )
+
+        const activeItems =
+          updatedItems.filter(
+            (item) =>
+              item.status !==
+              "cancelled"
+          )
+
+        const allItemsVerified =
+          activeItems.length > 0 &&
+          activeItems.every(
+            (item) =>
+              [
+                "verified",
+                "released",
+              ].includes(item.status)
+          )
+
+        const updatedOrder:
+          LaboratoryOrder = {
+          ...order,
+
+          items: updatedItems,
+
+          status:
+            allItemsVerified
+              ? "verified"
+              : "completed",
+
+          verifiedAt:
+            allItemsVerified
+              ? verifiedAt
+              : order.verifiedAt,
+
+          verifiedBy:
+            allItemsVerified
+              ? normalizedActor
+              : order.verifiedBy,
+
+          updatedAt: verifiedAt,
+
+          updatedBy:
+            normalizedActor,
+        }
+
+        return saveOrder(
+          updatedOrder
+        )
+      },
+      [saveOrder]
+    )
+
+  const releaseLaboratoryOrderItem =
+    useCallback(
+      (
+        orderId: string,
+        orderItemId: string,
+        releasedBy: string,
+        releasedAt =
+          new Date().toISOString()
+      ): LaboratoryOrder => {
+        const normalizedActor =
+          releasedBy.trim()
+
+        if (
+          normalizedActor.length < 2
+        ) {
+          throw new Error(
+            "Releasing laboratory professional is required."
+          )
+        }
+
+        const order =
+          getLaboratoryOrderOrThrow(
+            ordersRef.current,
+            orderId
+          )
+
+        const orderItem =
+          order.items.find(
+            (item) =>
+              item.id === orderItemId
+          )
+
+        if (!orderItem) {
+          throw new Error(
+            "The laboratory-order item was not found."
+          )
+        }
+
+        if (
+          orderItem.status ===
+          "released"
+        ) {
+          return order
+        }
+
+        if (
+          (
+            order.status !==
+              "verified" &&
+            order.status !==
+              "released"
+          ) ||
+          orderItem.status !==
+            "verified"
+        ) {
+          throw new Error(
+            "All test results must be technically verified before release."
+          )
+        }
+
+        const updatedItems =
+          order.items.map((item) =>
+            item.id === orderItemId
+              ? {
+                  ...item,
+                  status:
+                    "released" as const,
+                }
+              : item
+          )
+
+        const activeItems =
+          updatedItems.filter(
+            (item) =>
+              item.status !==
+              "cancelled"
+          )
+
+        const allItemsReleased =
+          activeItems.length > 0 &&
+          activeItems.every(
+            (item) =>
+              item.status ===
+              "released"
+          )
+
+        const updatedOrder:
+          LaboratoryOrder = {
+          ...order,
+
+          items: updatedItems,
+
+          status:
+            allItemsReleased
+              ? "released"
+              : "verified",
+
+          releasedAt:
+            allItemsReleased
+              ? releasedAt
+              : order.releasedAt,
+
+          releasedBy:
+            allItemsReleased
+              ? normalizedActor
+              : order.releasedBy,
+
+          updatedAt: releasedAt,
+
+          updatedBy:
+            normalizedActor,
+        }
+
+        return saveOrder(
+          updatedOrder
+        )
+      },
+      [saveOrder]
+    )
   const rejectLaboratorySpecimen =
     useCallback(
       (
@@ -967,6 +1353,9 @@ export function LaboratoryProvider({
         collectLaboratorySpecimen,
         receiveLaboratorySpecimen,
         startLaboratoryProcessing,
+        completeLaboratoryOrderItem,
+        verifyLaboratoryOrderItem,
+        releaseLaboratoryOrderItem,
         rejectLaboratorySpecimen,
         cancelLaboratoryOrder,
       }),
@@ -976,6 +1365,9 @@ export function LaboratoryProvider({
         collectLaboratorySpecimen,
         receiveLaboratorySpecimen,
         startLaboratoryProcessing,
+        completeLaboratoryOrderItem,
+        verifyLaboratoryOrderItem,
+        releaseLaboratoryOrderItem,
         rejectLaboratorySpecimen,
         cancelLaboratoryOrder,
       ]

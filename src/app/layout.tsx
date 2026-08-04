@@ -6,6 +6,7 @@ import { AppointmentAuditProvider } from "@/features/appointments/providers/appo
 import { AppointmentProvider } from "@/features/appointments/providers/appointment-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { LaboratoryProvider } from "@/features/laboratory/providers/laboratory-provider"
+import { LaboratoryResultProvider } from "@/features/laboratory/providers/laboratory-result-provider"
 import { ConsultationDiagnosisProvider } from "@/features/consultations/providers/consultation-diagnosis-provider"
 import { ConsultationEmrProvider } from "@/features/consultations/providers/consultation-emr-provider"
 import { ConsultationFinalizationProvider } from "@/features/consultations/providers/consultation-finalization-provider"
@@ -61,7 +62,9 @@ export default function RootLayout({
                             <ConsultationPrescriptionProvider>
                               <ConsultationFinalizationProvider>
                                 <LaboratoryProvider>
-                                  {children}
+                                  <LaboratoryResultProvider>
+                                    {children}
+                                  </LaboratoryResultProvider>
                                 </LaboratoryProvider>
                               </ConsultationFinalizationProvider>
                             </ConsultationPrescriptionProvider>
