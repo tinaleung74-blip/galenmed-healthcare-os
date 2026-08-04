@@ -1,4 +1,4 @@
-﻿import {
+import {
   PATIENT_TIMELINE_ACTION_LABELS,
   PATIENT_TIMELINE_CATEGORY_LABELS,
 } from "@/features/patients/constants/patient-timeline.constants"
@@ -24,6 +24,9 @@ const categoryStyles: Record<
     "border-cyan-200 bg-cyan-50 text-cyan-700",
   document:
     "border-amber-200 bg-amber-50 text-amber-700",
+
+  laboratory:
+    "border-teal-200 bg-teal-50 text-teal-700",
 }
 
 const actionStyles: Record<
@@ -44,6 +47,9 @@ const actionStyles: Record<
     "border-amber-200 bg-amber-50 text-amber-700",
   archived:
     "border-slate-200 bg-slate-100 text-slate-600",
+
+  released:
+    "border-teal-200 bg-teal-50 text-teal-700",
 }
 
 interface PatientTimelineCategoryBadgeProps {

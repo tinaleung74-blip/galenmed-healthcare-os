@@ -1,10 +1,11 @@
-﻿export const PATIENT_TIMELINE_EVENT_CATEGORIES = [
+export const PATIENT_TIMELINE_EVENT_CATEGORIES = [
   "patient",
   "medical-history",
   "vital-signs",
   "allergy",
   "insurance",
   "document",
+  "laboratory",
 ] as const
 
 export type PatientTimelineEventCategory =
@@ -18,6 +19,7 @@ export const PATIENT_TIMELINE_EVENT_ACTIONS = [
   "verified",
   "updated",
   "archived",
+  "released",
 ] as const
 
 export type PatientTimelineEventAction =
@@ -30,6 +32,7 @@ export const PATIENT_TIMELINE_SOURCE_SECTIONS = [
   "allergies",
   "insurance",
   "documents",
+  "timeline",
 ] as const
 
 export type PatientTimelineSourceSection =

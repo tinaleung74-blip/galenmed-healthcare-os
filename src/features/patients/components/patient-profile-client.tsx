@@ -13,6 +13,7 @@ import { PatientProfileNavigation } from "@/features/patients/components/patient
 import { PatientProfileNotFound } from "@/features/patients/components/patient-profile-not-found"
 import { PatientProfileOverview } from "@/features/patients/components/patient-profile-overview"
 import { PatientProfileSectionPlaceholder } from "@/features/patients/components/patient-profile-section-placeholder"
+import { PatientLaboratoryResultHistory } from "@/features/patients/components/patient-laboratory-result-history"
 import { PatientTimelineWorkspace } from "@/features/patients/components/patient-timeline-workspace"
 import { VitalSignsWorkspace } from "@/features/patients/components/vital-signs-workspace"
 import {
@@ -156,6 +157,11 @@ export function PatientProfileClient({
         />
 
         {renderActiveSection()}
+        {activeSection === "timeline" ? (
+          <PatientLaboratoryResultHistory
+            patientId={patient.id}
+          />
+        ) : null}
       </div>
 
       <PatientFormDialog

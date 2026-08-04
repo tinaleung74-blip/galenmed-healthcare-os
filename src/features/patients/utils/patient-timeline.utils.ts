@@ -1,4 +1,4 @@
-﻿import {
+import {
   MEDICAL_CONDITION_STATUS_LABELS,
   MEDICAL_HISTORY_RECORD_STATUS_LABELS,
   MEDICAL_HISTORY_VERIFICATION_LABELS,
@@ -25,6 +25,15 @@ import {
   VITAL_SIGNS_CONTEXT_LABELS,
   VITAL_SIGNS_RECORD_STATUS_LABELS,
 } from "@/features/patients/constants/vital-signs.constants"
+import {
+  LABORATORY_SPECIMEN_TYPE_LABELS,
+} from "@/features/laboratory/constants/laboratory.constants"
+import type {
+  LaboratoryResultSet,
+} from "@/features/laboratory/types/laboratory-result.types"
+import type {
+  LaboratoryOrder,
+} from "@/features/laboratory/types/laboratory.types"
 import type { MedicalHistoryRecord } from "@/features/patients/types/medical-history.types"
 import type { PatientAllergyRecord } from "@/features/patients/types/patient-allergy.types"
 import type { PatientDocumentRecord } from "@/features/patients/types/patient-document.types"
@@ -59,6 +68,12 @@ interface BuildPatientTimelineInput {
     readonly PatientInsuranceRecord[]
   documentRecords:
     readonly PatientDocumentRecord[]
+
+  laboratoryOrders:
+    readonly LaboratoryOrder[]
+
+  laboratoryResultSets:
+    readonly LaboratoryResultSet[]
 }
 
 function getTimestamp(
@@ -142,6 +157,8 @@ export function buildPatientTimelineEvents({
   allergyRecords,
   insuranceRecords,
   documentRecords,
+  laboratoryOrders,
+  laboratoryResultSets,
 }: BuildPatientTimelineInput): PatientTimelineEvent[] {
   const events: PatientTimelineEvent[] = []
 
@@ -1087,6 +1104,171 @@ export function buildPatientTimelineEvents({
       }
     })
 
+  laboratoryResultSets
+    .filter(
+      (resultSet) =>
+        resultSet.patientId ===
+          patient.id &&
+        resultSet.status ===
+          "released" &&
+        Boolean(resultSet.releasedAt)
+    )
+    .forEach((resultSet) => {
+      const order =
+        laboratoryOrders.find(
+          (candidateOrder) =>
+            candidateOrder.id ===
+            resultSet.orderId
+        ) ?? null
+
+      const orderItem =
+        order?.items.find(
+          (item) =>
+            item.id ===
+            resultSet.orderItemId
+        ) ?? null
+
+      if (
+        !order ||
+        !orderItem ||
+        !resultSet.releasedAt
+      ) {
+        return
+      }
+
+      const abnormalCount =
+        resultSet.entries.filter(
+          (entry) =>
+            entry.flag !== "normal" &&
+            entry.flag !==
+              "not-applicable"
+        ).length
+
+      const criticalCount =
+        resultSet.entries.filter(
+          (entry) =>
+            entry.flag ===
+              "critical-low" ||
+            entry.flag ===
+              "critical-high"
+        ).length
+
+      events.push({
+        id: createEventId(
+          "laboratory-result",
+          resultSet.id,
+          "released"
+        ),
+
+        patientId:
+          patient.id,
+
+        occurredAt:
+          resultSet.releasedAt,
+
+        category: "laboratory",
+        action: "released",
+
+        title: `${resultSet.testName} results released`,
+
+        summary: `${resultSet.testName} results were released with ${abnormalCount} abnormal flag${
+          abnormalCount === 1
+            ? ""
+            : "s"
+        } and ${criticalCount} critical flag${
+          criticalCount === 1
+            ? ""
+            : "s"
+        }.`,
+
+        actor:
+          resultSet.releasedBy,
+
+        reference:
+          resultSet.testName,
+
+        sourceSection: "timeline",
+
+        sourceRecordId:
+          resultSet.id,
+
+        recordStatus:
+          "current",
+
+        details: [
+          {
+            label:
+              "Laboratory test",
+            value:
+              resultSet.testName,
+          },
+          {
+            label: "Test code",
+            value:
+              resultSet.testCode,
+          },
+          {
+            label:
+              "Laboratory order",
+            value:
+              order.orderNumber,
+            sensitive: true,
+          },
+          {
+            label:
+              "Specimen type",
+            value:
+              LABORATORY_SPECIMEN_TYPE_LABELS[
+                orderItem.specimenType
+              ],
+          },
+          {
+            label:
+              "Analytes released",
+            value: String(
+              resultSet.entries.length
+            ),
+          },
+          {
+            label:
+              "Abnormal flags",
+            value: String(
+              abnormalCount
+            ),
+          },
+          {
+            label:
+              "Critical flags",
+            value: String(
+              criticalCount
+            ),
+          },
+          {
+            label:
+              "Released by",
+            value:
+              resultSet.releasedBy ??
+              "Not recorded",
+          },
+          {
+            label:
+              "Released at",
+            value:
+              formatPatientDateTime(
+                resultSet.releasedAt
+              ),
+          },
+          {
+            label:
+              "Release note",
+            value:
+              resultSet.releaseNote ??
+              "No note recorded",
+            sensitive: true,
+          },
+        ],
+      })
+    })
   return events.sort(
     (firstEvent, secondEvent) =>
       new Date(

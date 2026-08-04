@@ -1,13 +1,5 @@
-import { FlaskConical } from "lucide-react"
+﻿import { LaboratoryDashboardPage } from "@/features/laboratory/components/laboratory-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Laboratory"
-      description="Manage laboratory requests, specimens, processing, and results."
-      icon={FlaskConical}
-    />
-  )
+export default function LaboratoryPage() {
+  return <LaboratoryDashboardPage />
 }

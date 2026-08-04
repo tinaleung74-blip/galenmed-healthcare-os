@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
   useMemo,
@@ -35,6 +35,8 @@ import {
   PATIENT_TIMELINE_DATE_FILTER_LABELS,
   PATIENT_TIMELINE_INITIAL_VISIBLE_EVENTS,
 } from "@/features/patients/constants/patient-timeline.constants"
+import { useLaboratoryResults } from "@/features/laboratory/providers/laboratory-result-provider"
+import { useLaboratory } from "@/features/laboratory/providers/laboratory-provider"
 import { usePatientAllergies } from "@/features/patients/providers/patient-allergy-provider"
 import { usePatientDocuments } from "@/features/patients/providers/patient-documents-provider"
 import { usePatientInsurance } from "@/features/patients/providers/patient-insurance-provider"
@@ -272,6 +274,14 @@ export function PatientTimelineWorkspace({
   const { documentRecords } =
     usePatientDocuments()
 
+  const { laboratoryOrders } =
+    useLaboratory()
+
+  const {
+    resultSets:
+      laboratoryResultSets,
+  } = useLaboratoryResults()
+
   const [filters, setFilters] =
     useState<PatientTimelineFilters>(() => ({
       ...DEFAULT_PATIENT_TIMELINE_FILTERS,
@@ -298,6 +308,8 @@ export function PatientTimelineWorkspace({
         allergyRecords,
         insuranceRecords,
         documentRecords,
+        laboratoryOrders,
+        laboratoryResultSets,
       }),
     [
       patient,
@@ -306,6 +318,8 @@ export function PatientTimelineWorkspace({
       allergyRecords,
       insuranceRecords,
       documentRecords,
+      laboratoryOrders,
+      laboratoryResultSets,
     ]
   )
 
@@ -362,7 +376,8 @@ export function PatientTimelineWorkspace({
         event.category ===
           "medical-history" ||
         event.category === "vital-signs" ||
-        event.category === "allergy"
+        event.category === "allergy" ||
+        event.category === "laboratory"
     ).length
 
   const verifiedEventCount =
