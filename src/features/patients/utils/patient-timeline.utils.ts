@@ -46,6 +46,15 @@ import type {
 import type {
   RadiologyOrder,
 } from "@/features/radiology/types/radiology.types"
+import {
+  PHARMACY_PRESCRIPTION_PRIORITY_LABELS,
+  PHARMACY_PRESCRIPTION_SOURCE_LABELS,
+  PHARMACY_PRESCRIPTION_STATUS_LABELS,
+  PHARMACY_REVIEW_STATUS_LABELS,
+} from "@/features/pharmacy/constants/pharmacy.constants"
+import type {
+  PharmacyPrescription,
+} from "@/features/pharmacy/types/pharmacy.types"
 import type { MedicalHistoryRecord } from "@/features/patients/types/medical-history.types"
 import type { PatientAllergyRecord } from "@/features/patients/types/patient-allergy.types"
 import type { PatientDocumentRecord } from "@/features/patients/types/patient-document.types"
@@ -92,6 +101,9 @@ interface BuildPatientTimelineInput {
 
   radiologyReports:
     readonly RadiologyReportRecord[]
+
+  pharmacyPrescriptions:
+    readonly PharmacyPrescription[]
 }
 
 function getTimestamp(
@@ -179,6 +191,7 @@ export function buildPatientTimelineEvents({
   laboratoryResultSets,
   radiologyOrders,
   radiologyReports,
+  pharmacyPrescriptions,
 }: BuildPatientTimelineInput): PatientTimelineEvent[] {
   const events: PatientTimelineEvent[] = []
 
@@ -1457,6 +1470,221 @@ export function buildPatientTimelineEvents({
         ],
       })
     })
+  pharmacyPrescriptions
+    .filter(
+      (prescription) =>
+        prescription.patientId ===
+          patient.id &&
+        Boolean(
+          prescription.releasedAt
+        )
+    )
+    .forEach(
+      (prescription) => {
+        const releasedAt =
+          prescription.releasedAt
+
+        if (!releasedAt) {
+          return
+        }
+
+        const activeItems =
+          prescription.items.filter(
+            (item) =>
+              item.status !==
+              "cancelled"
+          )
+
+        const medicationSummary =
+          activeItems
+            .map(
+              (item) =>
+                `${item.genericName} ${item.strength}`
+            )
+            .join(", ")
+
+        const totalQuantityDispensed =
+          activeItems.reduce(
+            (
+              total,
+              item
+            ) =>
+              total +
+              item.quantityDispensed,
+            0
+          )
+
+        const hasSafetyWarning =
+          prescription
+            .allergyReviewStatus ===
+              "warning" ||
+          prescription
+            .interactionReviewStatus ===
+              "warning"
+
+        events.push({
+          id: createEventId(
+            "pharmacy-prescription",
+            prescription.id,
+            "released"
+          ),
+
+          patientId:
+            patient.id,
+
+          occurredAt:
+            releasedAt,
+
+          category: "pharmacy",
+          action: "released",
+
+          title:
+            "Dispensed medication released",
+
+          summary: `${activeItems.length} medication item${
+            activeItems.length ===
+            1
+              ? ""
+              : "s"
+          } were released${
+            hasSafetyWarning
+              ? " with a documented non-blocking pharmacy warning"
+              : ""
+          }.`,
+
+          actor:
+            prescription.releasedBy,
+
+          reference:
+            medicationSummary ||
+            prescription
+              .prescriptionNumber,
+
+          sourceSection: "timeline",
+
+          sourceRecordId:
+            prescription.id,
+
+          recordStatus: "current",
+
+          details: [
+            {
+              label:
+                "Medications",
+              value:
+                medicationSummary ||
+                "No active medication items",
+            },
+            {
+              label:
+                "Medication items released",
+              value: String(
+                activeItems.length
+              ),
+            },
+            {
+              label:
+                "Total units dispensed",
+              value: String(
+                totalQuantityDispensed
+              ),
+            },
+            {
+              label:
+                "Prescription reference",
+              value:
+                prescription
+                  .prescriptionNumber,
+              sensitive: true,
+            },
+            {
+              label: "Priority",
+              value:
+                PHARMACY_PRESCRIPTION_PRIORITY_LABELS[
+                  prescription.priority
+                ],
+            },
+            {
+              label: "Source",
+              value:
+                PHARMACY_PRESCRIPTION_SOURCE_LABELS[
+                  prescription.source
+                ],
+            },
+            {
+              label:
+                "Prescription status",
+              value:
+                PHARMACY_PRESCRIPTION_STATUS_LABELS[
+                  prescription.status
+                ],
+            },
+            {
+              label:
+                "Allergy review",
+              value:
+                PHARMACY_REVIEW_STATUS_LABELS[
+                  prescription
+                    .allergyReviewStatus
+                ],
+            },
+            {
+              label:
+                "Interaction review",
+              value:
+                PHARMACY_REVIEW_STATUS_LABELS[
+                  prescription
+                    .interactionReviewStatus
+                ],
+            },
+            {
+              label:
+                "Pharmacist verified by",
+              value:
+                prescription
+                  .pharmacistVerifiedBy ??
+                "Not recorded",
+            },
+            {
+              label:
+                "Counseling completed by",
+              value:
+                prescription
+                  .counselingCompletedBy ??
+                "Not recorded",
+            },
+            {
+              label:
+                "Released by",
+              value:
+                prescription.releasedBy ??
+                "Not recorded",
+            },
+            {
+              label:
+                "Released at",
+              value:
+                formatPatientDateTime(
+                  releasedAt
+                ),
+            },
+            {
+              label:
+                "Counseling notes",
+              value:
+                prescription
+                  .counselingNotes ??
+                "No counseling notes recorded",
+              sensitive:
+                Boolean(
+                  prescription
+                    .counselingNotes
+                ),
+            },
+          ],
+        })
+      }
+    )
   return events.sort(
     (firstEvent, secondEvent) =>
       new Date(

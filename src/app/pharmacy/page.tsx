@@ -1,13 +1,5 @@
-import { Pill } from "lucide-react"
+﻿import { PharmacyDashboardPage } from "@/features/pharmacy/components/pharmacy-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Pharmacy"
-      description="Manage prescriptions, dispensing, medicines, and inventory."
-      icon={Pill}
-    />
-  )
+export default function PharmacyPage() {
+  return <PharmacyDashboardPage />
 }

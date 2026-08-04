@@ -16,6 +16,7 @@ export const PATIENT_TIMELINE_CATEGORY_LABELS: Record<
   document: "Documents",
   laboratory: "Laboratory",
   radiology: "Radiology",
+  pharmacy: "Pharmacy",
 }
 
 export const PATIENT_TIMELINE_ACTION_LABELS: Record<

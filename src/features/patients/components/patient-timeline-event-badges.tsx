@@ -30,6 +30,9 @@ const categoryStyles: Record<
 
   radiology:
     "border-violet-200 bg-violet-50 text-violet-700",
+
+  pharmacy:
+    "border-cyan-200 bg-cyan-50 text-cyan-700",
 }
 
 const actionStyles: Record<
