@@ -8,6 +8,7 @@ export const PATIENT_TIMELINE_EVENT_CATEGORIES = [
   "laboratory",
   "radiology",
   "pharmacy",
+  "billing",
 ] as const
 
 export type PatientTimelineEventCategory =
@@ -22,6 +23,11 @@ export const PATIENT_TIMELINE_EVENT_ACTIONS = [
   "updated",
   "archived",
   "released",
+  "issued",
+  "payment-posted",
+  "refund-posted",
+  "settled",
+  "voided",
 ] as const
 
 export type PatientTimelineEventAction =

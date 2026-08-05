@@ -33,6 +33,9 @@ const categoryStyles: Record<
 
   pharmacy:
     "border-cyan-200 bg-cyan-50 text-cyan-700",
+
+  billing:
+    "border-sky-200 bg-sky-50 text-sky-700",
 }
 
 const actionStyles: Record<
@@ -56,6 +59,16 @@ const actionStyles: Record<
 
   released:
     "border-teal-200 bg-teal-50 text-teal-700",
+  issued:
+    "border-sky-200 bg-sky-50 text-sky-700",
+  "payment-posted":
+    "border-emerald-200 bg-emerald-50 text-emerald-700",
+  "refund-posted":
+    "border-violet-200 bg-violet-50 text-violet-700",
+  settled:
+    "border-emerald-200 bg-emerald-50 text-emerald-700",
+  voided:
+    "border-slate-200 bg-slate-100 text-slate-600",
 }
 
 interface PatientTimelineCategoryBadgeProps {

@@ -47,6 +47,18 @@ import type {
   RadiologyOrder,
 } from "@/features/radiology/types/radiology.types"
 import {
+  BILLING_PAYMENT_METHOD_LABELS,
+  BILLING_STATEMENT_STATUS_LABELS,
+} from "@/features/billing/constants/billing.constants"
+import type {
+  BillingPayment,
+  BillingRefund,
+  BillingStatement,
+} from "@/features/billing/types/billing.types"
+import {
+  formatBillingAmount,
+} from "@/features/billing/utils/billing.utils"
+import {
   PHARMACY_PRESCRIPTION_PRIORITY_LABELS,
   PHARMACY_PRESCRIPTION_SOURCE_LABELS,
   PHARMACY_PRESCRIPTION_STATUS_LABELS,
@@ -104,6 +116,15 @@ interface BuildPatientTimelineInput {
 
   pharmacyPrescriptions:
     readonly PharmacyPrescription[]
+
+  billingStatements:
+    readonly BillingStatement[]
+
+  billingPayments:
+    readonly BillingPayment[]
+
+  billingRefunds:
+    readonly BillingRefund[]
 }
 
 function getTimestamp(
@@ -192,6 +213,9 @@ export function buildPatientTimelineEvents({
   radiologyOrders,
   radiologyReports,
   pharmacyPrescriptions,
+  billingStatements,
+  billingPayments,
+  billingRefunds,
 }: BuildPatientTimelineInput): PatientTimelineEvent[] {
   const events: PatientTimelineEvent[] = []
 
@@ -1685,6 +1709,553 @@ export function buildPatientTimelineEvents({
         })
       }
     )
+  billingStatements
+    .filter(
+      (statement) =>
+        statement.patientId ===
+          patient.id &&
+        statement.status !==
+          "draft"
+    )
+    .forEach((statement) => {
+      const timelineRecordStatus =
+        statement.status ===
+        "voided"
+          ? "archived"
+          : "current"
+
+      if (statement.issuedAt) {
+        events.push({
+          id: createEventId(
+            "billing-statement",
+            statement.id,
+            "issued"
+          ),
+
+          patientId:
+            patient.id,
+
+          occurredAt:
+            statement.issuedAt,
+
+          category: "billing",
+          action: "issued",
+
+          title:
+            "Billing statement issued",
+
+          summary: `${statement.statementNumber} was issued with a patient responsibility of ${formatBillingAmount(
+            statement.patientResponsibilityCentavos
+          )}.`,
+
+          actor:
+            statement.issuedBy,
+
+          reference:
+            statement.statementNumber,
+
+          sourceSection:
+            "timeline",
+
+          sourceRecordId:
+            statement.id,
+
+          recordStatus:
+            timelineRecordStatus,
+
+          details: [
+            {
+              label:
+                "Statement number",
+
+              value:
+                statement.statementNumber,
+
+              sensitive: true,
+            },
+            {
+              label:
+                "Billing branch",
+
+              value:
+                statement.branchName,
+            },
+            {
+              label:
+                "Gross charges",
+
+              value:
+                formatBillingAmount(
+                  statement.grossAmountCentavos
+                ),
+            },
+            {
+              label:
+                "Adjustments",
+
+              value:
+                formatBillingAmount(
+                  statement.adjustmentAmountCentavos
+                ),
+            },
+            {
+              label:
+                "Coverage allocation",
+
+              value:
+                formatBillingAmount(
+                  statement.coverageAmountCentavos
+                ),
+            },
+            {
+              label:
+                "Patient responsibility",
+
+              value:
+                formatBillingAmount(
+                  statement.patientResponsibilityCentavos
+                ),
+            },
+            {
+              label:
+                "Current statement status",
+
+              value:
+                BILLING_STATEMENT_STATUS_LABELS[
+                  statement.status
+                ],
+            },
+          ],
+        })
+      }
+
+      billingPayments
+        .filter(
+          (payment) =>
+            payment.statementId ===
+            statement.id
+        )
+        .forEach((payment) => {
+          events.push({
+            id: createEventId(
+              "billing-payment",
+              payment.id,
+              "payment-posted"
+            ),
+
+            patientId:
+              patient.id,
+
+            occurredAt:
+              payment.postedAt,
+
+            category: "billing",
+
+            action:
+              "payment-posted",
+
+            title:
+              "Billing payment and official receipt posted",
+
+            summary: `${payment.officialReceiptNumber} was generated for ${formatBillingAmount(
+              payment.amountCentavos
+            )}.`,
+
+            actor:
+              payment.postedBy,
+
+            reference:
+              payment.officialReceiptNumber,
+
+            sourceSection:
+              "timeline",
+
+            sourceRecordId:
+              payment.id,
+
+            recordStatus:
+              payment.status ===
+              "reversed"
+                ? "archived"
+                : timelineRecordStatus,
+
+            details: [
+              {
+                label:
+                  "Payment number",
+
+                value:
+                  payment.paymentNumber,
+
+                sensitive: true,
+              },
+              {
+                label:
+                  "Official receipt",
+
+                value:
+                  payment.officialReceiptNumber,
+
+                sensitive: true,
+              },
+              {
+                label:
+                  "Payment method",
+
+                value:
+                  BILLING_PAYMENT_METHOD_LABELS[
+                    payment.method
+                  ],
+              },
+              {
+                label:
+                  "Payment amount",
+
+                value:
+                  formatBillingAmount(
+                    payment.amountCentavos
+                  ),
+              },
+              {
+                label:
+                  "Payment status",
+
+                value:
+                  payment.status ===
+                  "posted"
+                    ? "Posted"
+                    : "Reversed",
+              },
+              {
+                label:
+                  "Recorded by",
+
+                value:
+                  payment.postedBy,
+              },
+              {
+                label:
+                  "External reference",
+
+                value:
+                  payment.externalReference ??
+                  "Not recorded",
+
+                sensitive:
+                  Boolean(
+                    payment.externalReference
+                  ),
+              },
+              {
+                label:
+                  "Reversal reason",
+
+                value:
+                  payment.reversalReason ??
+                  "Not applicable",
+
+                sensitive:
+                  Boolean(
+                    payment.reversalReason
+                  ),
+              },
+            ],
+          })
+        })
+
+      billingRefunds
+        .filter(
+          (refund) =>
+            refund.statementId ===
+            statement.id
+        )
+        .forEach((refund) => {
+          const linkedPayment =
+            refund.paymentId
+              ? billingPayments.find(
+                  (payment) =>
+                    payment.id ===
+                    refund.paymentId
+                ) ?? null
+              : null
+
+          events.push({
+            id: createEventId(
+              "billing-refund",
+              refund.id,
+              "refund-posted"
+            ),
+
+            patientId:
+              patient.id,
+
+            occurredAt:
+              refund.postedAt,
+
+            category: "billing",
+
+            action:
+              "refund-posted",
+
+            title:
+              "Billing refund posted",
+
+            summary: `${refund.refundNumber} was recorded for ${formatBillingAmount(
+              refund.amountCentavos
+            )}.`,
+
+            actor:
+              refund.postedBy,
+
+            reference:
+              refund.refundNumber,
+
+            sourceSection:
+              "timeline",
+
+            sourceRecordId:
+              refund.id,
+
+            recordStatus:
+              refund.status ===
+              "reversed"
+                ? "archived"
+                : timelineRecordStatus,
+
+            details: [
+              {
+                label:
+                  "Refund number",
+
+                value:
+                  refund.refundNumber,
+
+                sensitive: true,
+              },
+              {
+                label:
+                  "Refund amount",
+
+                value:
+                  formatBillingAmount(
+                    refund.amountCentavos
+                  ),
+              },
+              {
+                label:
+                  "Related official receipt",
+
+                value:
+                  linkedPayment
+                    ?.officialReceiptNumber ??
+                  "Statement-level refund",
+
+                sensitive:
+                  Boolean(
+                    linkedPayment
+                  ),
+              },
+              {
+                label:
+                  "Refund status",
+
+                value:
+                  refund.status ===
+                  "posted"
+                    ? "Posted"
+                    : "Reversed",
+              },
+              {
+                label:
+                  "Refund reason",
+
+                value:
+                  refund.reason,
+
+                sensitive: true,
+              },
+              {
+                label:
+                  "Reversal reason",
+
+                value:
+                  refund.reversalReason ??
+                  "Not applicable",
+
+                sensitive:
+                  Boolean(
+                    refund.reversalReason
+                  ),
+              },
+            ],
+          })
+        })
+
+      if (statement.closedAt) {
+        events.push({
+          id: createEventId(
+            "billing-statement",
+            statement.id,
+            "settled"
+          ),
+
+          patientId:
+            patient.id,
+
+          occurredAt:
+            statement.closedAt,
+
+          category: "billing",
+          action: "settled",
+
+          title:
+            "Billing statement fully settled",
+
+          summary: `${statement.statementNumber} reached a zero balance due.`,
+
+          actor:
+            statement.closedBy,
+
+          reference:
+            statement.statementNumber,
+
+          sourceSection:
+            "timeline",
+
+          sourceRecordId:
+            statement.id,
+
+          recordStatus:
+            timelineRecordStatus,
+
+          details: [
+            {
+              label:
+                "Statement number",
+
+              value:
+                statement.statementNumber,
+
+              sensitive: true,
+            },
+            {
+              label:
+                "Patient responsibility",
+
+              value:
+                formatBillingAmount(
+                  statement.patientResponsibilityCentavos
+                ),
+            },
+            {
+              label:
+                "Payments posted",
+
+              value:
+                formatBillingAmount(
+                  statement.amountPaidCentavos
+                ),
+            },
+            {
+              label:
+                "Refunds posted",
+
+              value:
+                formatBillingAmount(
+                  statement.refundAmountCentavos
+                ),
+            },
+            {
+              label:
+                "Balance due",
+
+              value:
+                formatBillingAmount(
+                  statement.balanceDueCentavos
+                ),
+            },
+            {
+              label:
+                "Credit balance",
+
+              value:
+                formatBillingAmount(
+                  statement.creditBalanceCentavos
+                ),
+            },
+          ],
+        })
+      }
+
+      if (statement.voidedAt) {
+        events.push({
+          id: createEventId(
+            "billing-statement",
+            statement.id,
+            "voided"
+          ),
+
+          patientId:
+            patient.id,
+
+          occurredAt:
+            statement.voidedAt,
+
+          category: "billing",
+          action: "voided",
+
+          title:
+            "Billing statement voided",
+
+          summary: `${statement.statementNumber} was voided and retained as a read-only financial record.`,
+
+          actor:
+            statement.voidedBy,
+
+          reference:
+            statement.statementNumber,
+
+          sourceSection:
+            "timeline",
+
+          sourceRecordId:
+            statement.id,
+
+          recordStatus:
+            "archived",
+
+          details: [
+            {
+              label:
+                "Statement number",
+
+              value:
+                statement.statementNumber,
+
+              sensitive: true,
+            },
+            {
+              label:
+                "Voided by",
+
+              value:
+                statement.voidedBy ??
+                "Not recorded",
+            },
+            {
+              label:
+                "Void reason",
+
+              value:
+                statement.voidReason ??
+                "Not recorded",
+
+              sensitive: true,
+            },
+          ],
+        })
+      }
+    })
   return events.sort(
     (firstEvent, secondEvent) =>
       new Date(
