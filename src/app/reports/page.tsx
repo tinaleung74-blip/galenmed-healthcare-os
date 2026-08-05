@@ -1,13 +1,5 @@
-import { ChartNoAxesCombined } from "lucide-react"
+﻿import { ReportsDashboardPage } from "@/features/reports/components/reports-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Reports"
-      description="View operational, clinical, financial, and management reports."
-      icon={ChartNoAxesCombined}
-    />
-  )
+export default function ReportsPage() {
+  return <ReportsDashboardPage />
 }
