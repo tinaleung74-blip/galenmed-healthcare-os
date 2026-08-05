@@ -17,6 +17,7 @@ export const PATIENT_TIMELINE_CATEGORY_LABELS: Record<
   laboratory: "Laboratory",
   radiology: "Radiology",
   pharmacy: "Pharmacy",
+  billing: "Billing",
 }
 
 export const PATIENT_TIMELINE_ACTION_LABELS: Record<
@@ -31,6 +32,11 @@ export const PATIENT_TIMELINE_ACTION_LABELS: Record<
   updated: "Updated",
   archived: "Archived",
   released: "Released",
+  issued: "Issued",
+  "payment-posted": "Payment Posted",
+  "refund-posted": "Refund Posted",
+  settled: "Statement Settled",
+  voided: "Statement Voided",
 }
 
 export const PATIENT_TIMELINE_DATE_FILTER_LABELS =

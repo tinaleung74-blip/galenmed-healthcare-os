@@ -1,13 +1,5 @@
-import { CreditCard } from "lucide-react"
+﻿import { BillingDashboardPage } from "@/features/billing/components/billing-dashboard-page"
 
-import { ModulePlaceholder } from "@/components/common/module-placeholder"
-
-export default function Page() {
-  return (
-    <ModulePlaceholder
-      title="Billing"
-      description="Manage charges, invoices, payments, and patient account balances."
-      icon={CreditCard}
-    />
-  )
+export default function BillingPage() {
+  return <BillingDashboardPage />
 }
