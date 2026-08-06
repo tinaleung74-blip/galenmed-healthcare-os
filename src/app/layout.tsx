@@ -11,6 +11,7 @@ import { RadiologyProvider } from "@/features/radiology/providers/radiology-prov
 import { RadiologyReportProvider } from "@/features/radiology/providers/radiology-report-provider"
 import { PharmacyProvider } from "@/features/pharmacy/providers/pharmacy-provider"
 import { BillingProvider } from "@/features/billing/providers/billing-provider"
+import { SettingsProvider } from "@/features/settings/providers/settings-provider"
 import { ConsultationDiagnosisProvider } from "@/features/consultations/providers/consultation-diagnosis-provider"
 import { ConsultationEmrProvider } from "@/features/consultations/providers/consultation-emr-provider"
 import { ConsultationFinalizationProvider } from "@/features/consultations/providers/consultation-finalization-provider"
@@ -70,9 +71,11 @@ export default function RootLayout({
                                     <RadiologyProvider>
                                       <RadiologyReportProvider>
                                         <PharmacyProvider>
-                                          <BillingProvider>
-                                            {children}
-                                          </BillingProvider>
+                                          <SettingsProvider>
+                                            <BillingProvider>
+                                              {children}
+                                            </BillingProvider>
+                                          </SettingsProvider>
                                         </PharmacyProvider>
                                       </RadiologyReportProvider>
                                     </RadiologyProvider>
