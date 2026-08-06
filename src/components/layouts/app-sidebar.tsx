@@ -14,6 +14,7 @@ import {
   Settings,
   Stethoscope,
   Users,
+  Settings2,
 } from "lucide-react"
 
 const navigation = [
@@ -61,6 +62,11 @@ const navigation = [
     name: "Reports",
     href: "/reports",
     icon: ChartNoAxesCombined,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Settings2,
   },
 ]
 
