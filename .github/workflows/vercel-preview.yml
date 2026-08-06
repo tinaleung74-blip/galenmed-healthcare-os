@@ -1,0 +1,70 @@
+﻿name: GalenMed UAT Preview Deployment
+
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: galenmed-uat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    name: Validate and Deploy Preview
+
+    runs-on: ubuntu-latest
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Pull Vercel Preview configuration
+        run: >
+          npx vercel@latest pull
+          --yes
+          --environment=preview
+          --token="$VERCEL_TOKEN"
+
+      - name: Create Vercel build
+        run: >
+          npx vercel@latest build
+          --token="$VERCEL_TOKEN"
+
+      - name: Deploy Vercel Preview
+        id: deploy
+        shell: bash
+        run: |
+          DEPLOYMENT_URL="$(npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN")"
+
+          echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+
+          echo "### GalenMed UAT Preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "$DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Show Preview URL
+        run: |
+          echo "Preview URL: ${{ steps.deploy.outputs.url }}"
