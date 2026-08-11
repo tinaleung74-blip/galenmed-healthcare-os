@@ -1,9 +1,9 @@
 "use client"
+import Image from "next/image"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Activity,
   CalendarDays,
   ChartNoAxesCombined,
   CreditCard,
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Pill,
   ScanLine,
+  ShieldPlus,
   Settings,
   Stethoscope,
   Users,
@@ -59,6 +60,11 @@ const navigation = [
     icon: CreditCard,
   },
   {
+    name: "PhilHealth",
+    href: "/philhealth",
+    icon: ShieldPlus,
+  },
+  {
     name: "Reports",
     href: "/reports",
     icon: ChartNoAxesCombined,
@@ -76,9 +82,14 @@ export function AppSidebar() {
   return (
     <aside className="hidden min-h-screen w-64 shrink-0 border-r bg-white lg:flex lg:flex-col">
       <div className="flex h-16 items-center gap-3 border-b px-6">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-teal-700 text-white">
-          <Activity className="size-5" />
-        </div>
+        <Image
+          src="/brand/galenmed-logo.png"
+          alt="GalenMed logo"
+          width={40}
+          height={40}
+          className="size-10 shrink-0 object-contain"
+          priority
+        />
 
         <div>
           <p className="font-semibold tracking-tight">GalenMed</p>

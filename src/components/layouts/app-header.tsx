@@ -1,4 +1,6 @@
-﻿import { Bell, Menu } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
+import { Bell, Menu } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -16,6 +18,21 @@ export function AppHeader() {
         <Menu className="size-5" aria-hidden="true" />
         <span className="sr-only">Open navigation</span>
       </Button>
+
+      <Link
+        href="/dashboard"
+        className="flex shrink-0 items-center lg:hidden"
+        aria-label="Open GalenMed dashboard"
+      >
+        <Image
+          src="/brand/galenmed-logo.png"
+          alt="GalenMed logo"
+          width={36}
+          height={36}
+          className="size-9 object-contain"
+          priority
+        />
+      </Link>
 
       <GlobalPatientSearch className="hidden max-w-md flex-1 md:block" />
 
