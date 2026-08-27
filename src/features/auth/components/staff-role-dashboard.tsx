@@ -207,11 +207,11 @@ export function StaffRoleDashboard({
           <section className="space-y-3">
             <div>
               <h2 className="text-base font-semibold">
-                Administrative workspaces
+                Role workspaces
               </h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Open a protected GalenMed administrator module.
+                Open a protected GalenMed module assigned to this staff role.
               </p>
             </div>
 

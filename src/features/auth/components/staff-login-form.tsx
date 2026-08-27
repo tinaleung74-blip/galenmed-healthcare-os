@@ -22,6 +22,13 @@ import {
 } from "next/navigation"
 
 import { GalenMedLogo } from "@/components/brand/galenmed-logo"
+import { StaffPortalSelector } from "@/features/auth/components/staff-portal-selector"
+import {
+  getAssignedPortalLabel,
+  getStaffPortalDefinition,
+  staffPortalAllowsRoles,
+  type StaffPortalCode,
+} from "@/features/auth/constants/staff-portals"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,9 +40,7 @@ import {
   staffContextSchema,
   staffLoginFormSchema,
 } from "@/features/auth/schemas/staff-auth.schema"
-import {
-  getPreferredDashboardPath,
-} from "@/features/auth/utils/staff-auth.utils"
+
 import {
   createClient,
 } from "@/lib/supabase/client"
@@ -57,6 +62,14 @@ export function StaffLoginForm() {
   const [password, setPassword] =
     useState("")
 
+  const [
+    selectedPortal,
+    setSelectedPortal,
+  ] =
+    useState<
+      StaffPortalCode | null
+    >(null)
+
   const [showPassword, setShowPassword] =
     useState(false)
 
@@ -71,6 +84,17 @@ export function StaffLoginForm() {
   ) {
     event.preventDefault()
     setErrorMessage(null)
+
+    const requestedPortal =
+      selectedPortal
+
+    if (!requestedPortal) {
+      setErrorMessage(
+        "Select the staff portal you want to open."
+      )
+
+      return
+    }
 
     const parsedValues =
       staffLoginFormSchema.safeParse({
@@ -138,10 +162,41 @@ export function StaffLoginForm() {
         return
       }
 
-      const dashboardPath =
-        getPreferredDashboardPath(
-          parsedContext.data
+      const assignedRoleCodes =
+        parsedContext.data.roles.map(
+          (role) =>
+            role.code
         )
+
+      const portal =
+        getStaffPortalDefinition(
+          requestedPortal
+        )
+
+      if (
+        !staffPortalAllowsRoles(
+          portal,
+          assignedRoleCodes
+        )
+      ) {
+        const assignedPortalLabel =
+          getAssignedPortalLabel(
+            assignedRoleCodes
+          )
+
+        await supabase.auth.signOut({
+          scope: "local",
+        })
+
+        setErrorMessage(
+          `This account is assigned to ${assignedPortalLabel}. Choose that portal and sign in again.`
+        )
+
+        return
+      }
+
+      const dashboardPath =
+        portal.dashboardPath
 
       const {
         error: auditError,
@@ -163,6 +218,12 @@ export function StaffLoginForm() {
 
             dashboard_path:
               dashboardPath,
+
+            selected_portal:
+              requestedPortal,
+
+            assigned_roles:
+              assignedRoleCodes,
           },
         }
       )
@@ -359,10 +420,9 @@ export function StaffLoginForm() {
                 </h2>
 
                 <p className="mt-3 max-w-lg text-base leading-7 text-slate-600">
-                  Enter your assigned work
-                  email and GalenMed staff
-                  password to open your
-                  authorized dashboard.
+                  Choose your assigned staff
+                  portal, then enter your work
+                  email and GalenMed password.
                 </p>
               </div>
 
@@ -371,6 +431,26 @@ export function StaffLoginForm() {
                 className="mt-9 space-y-6"
                 onSubmit={handleSubmit}
               >
+                <StaffPortalSelector
+                  value={
+                    selectedPortal
+                  }
+                  disabled={
+                    isSubmitting
+                  }
+                  onChange={(
+                    portalCode
+                  ) => {
+                    setSelectedPortal(
+                      portalCode
+                    )
+
+                    setErrorMessage(
+                      null
+                    )
+                  }}
+                />
+
                 <div className="space-y-2.5">
                   <Label
                     htmlFor="staff-login-email"

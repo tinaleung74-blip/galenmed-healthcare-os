@@ -15,7 +15,22 @@ export default async function DoctorDashboardPage() {
     <StaffRoleDashboard
       context={context}
       title="Doctor Dashboard"
-      description="Review assigned patient queues, open clinically relevant records, complete consultations, and prepare prescriptions."
+      description="Open assigned consultation patients, review authorized clinical information, and document Doctor consultations."
+      actions={[
+        {
+          href: "/doctor/prescriptions",
+          title:
+            "Prescription Composer",
+          description:
+            "Create, correct, sign, and submit prescriptions linked to your Doctor consultations.",
+        },        {
+          href: "/doctor/queue",
+          title:
+            "Assigned Patient Queue",
+          description:
+            "Open consultation requests assigned to your Doctor account and start or continue clinical documentation.",
+        },
+      ]}
     />
   )
 }

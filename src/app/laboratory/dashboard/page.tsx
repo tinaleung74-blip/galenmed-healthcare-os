@@ -16,7 +16,23 @@ export default async function LaboratoryStaffDashboardPage() {
     <StaffRoleDashboard
       context={context}
       title="Laboratory Staff Dashboard"
-      description="Manage laboratory queues, requested tests, specimen workflows, result entry, and authorized result verification."
+      description="Manage Laboratory queues, requested tests, result entry, authorized verification, and payment-aware release status."
+      actions={[
+        {
+          href: "/laboratory/queue",
+          title:
+            "Laboratory Patient Queue",
+          description:
+            "View queued patients and requested tests, call patients, start service, monitor payment status, and complete the department queue workflow.",
+        },
+        {
+          href: "/laboratory/results",
+          title:
+            "Result Entry and Verification",
+          description:
+            "Enter structured results, submit drafts for Laboratory Verifier review, finalize verified documents, and monitor Reception release readiness.",
+        },
+      ]}
     />
   )
 }

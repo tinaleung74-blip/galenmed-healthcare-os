@@ -24,6 +24,13 @@ export default async function AdminDashboardPage() {
           description:
             "Create Receptionist, Doctor, Laboratory Staff, Laboratory Verifier, and Cashier accounts with branch and department access.",
         },
+        {
+          href: "/admin/services",
+          title:
+            "Hospital Service Catalog",
+          description:
+            "Configure consultation, laboratory, radiology, pharmacy, procedure, and other services used by Receptionist intake, queues, and billing.",
+        },
       ]}
     />
   )
