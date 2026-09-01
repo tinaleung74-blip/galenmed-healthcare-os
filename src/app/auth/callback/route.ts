@@ -8,12 +8,17 @@ import {
 } from "@/lib/supabase/server"
 
 function getSafeNextPath(
-  value: string | null
+  value:
+    string | null
 ): string {
   if (
     value &&
-    value.startsWith("/") &&
-    !value.startsWith("//")
+    value.startsWith(
+      "/"
+    ) &&
+    !value.startsWith(
+      "//"
+    )
   ) {
     return value
   }
@@ -21,8 +26,19 @@ function getSafeNextPath(
   return "/staff/account/change-password"
 }
 
+function getRecoveryErrorPath(
+  nextPath: string
+): string {
+  return nextPath.startsWith(
+    "/patient/"
+  )
+    ? "/patient/login"
+    : "/staff/login"
+}
+
 export async function GET(
-  request: NextRequest
+  request:
+    NextRequest
 ) {
   const code =
     request.nextUrl.searchParams.get(
@@ -54,7 +70,8 @@ export async function GET(
       successUrl.pathname =
         nextPath
 
-      successUrl.search = ""
+      successUrl.search =
+        ""
 
       return NextResponse.redirect(
         successUrl
@@ -66,7 +83,9 @@ export async function GET(
     request.nextUrl.clone()
 
   errorUrl.pathname =
-    "/staff/login"
+    getRecoveryErrorPath(
+      nextPath
+    )
 
   errorUrl.search =
     "?error=password-reset"

@@ -586,6 +586,18 @@ export function StaffLoginForm() {
                 </Button>
               </form>
 
+              <Link
+                href="/patient/login"
+                className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/70 px-4 text-sm font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100/70 hover:text-teal-950"
+              >
+                Are you a patient? Open Patient Portal
+
+                <ArrowRight
+                  className="size-4"
+                  aria-hidden="true"
+                />
+              </Link>
+
               <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-3">
                   <LockKeyhole

@@ -18,6 +18,14 @@ export default async function ReceptionDashboardPage() {
       description="Register patients, create hospital visits, route service requests, assign consultation Doctors, monitor payment clearance, and release finalized documents."
       actions={[
         {
+          href:
+            "/reception/patient-portal-accounts",
+          title:
+            "Patient Portal Account Management",
+          description:
+            "Create and link a secure Patient Portal login to the correct verified medical record.",
+        },
+        {
           href: "/reception/prescriptions",
           title:
             "Prescription Review Queue",
