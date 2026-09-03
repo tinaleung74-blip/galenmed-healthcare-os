@@ -11,6 +11,9 @@ import type {
   PatientPortalContext,
 } from "@/features/patient-portal/types/patient-portal.types"
 import {
+  readPortalAccountType,
+} from "@/lib/auth/portal-account-type"
+import {
   createClient,
 } from "@/lib/supabase/server"
 
@@ -36,7 +39,19 @@ async function getCurrentPatientPortalAuthState(): Promise<
     !claimsData?.claims?.sub
   ) {
     return {
-      context: null,
+      context:
+        null,
+    }
+  }
+
+  if (
+    readPortalAccountType(
+      claimsData.claims
+    ) === "staff"
+  ) {
+    return {
+      context:
+        null,
     }
   }
 
@@ -49,7 +64,8 @@ async function getCurrentPatientPortalAuthState(): Promise<
 
   if (error) {
     return {
-      context: null,
+      context:
+        null,
     }
   }
 

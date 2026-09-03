@@ -6,9 +6,16 @@ import {
   type NextRequest,
 } from "next/server"
 
+import {
+  readPortalAccountType,
+  type PortalAccountType,
+} from "@/lib/auth/portal-account-type"
+
 export interface SessionUpdateResult {
   response: NextResponse
   authenticated: boolean
+  accountType:
+    PortalAccountType | null
 }
 
 export async function updateSession(
@@ -32,7 +39,11 @@ export async function updateSession(
           request,
         }),
 
-      authenticated: false,
+      authenticated:
+        false,
+
+      accountType:
+        null,
     }
   }
 
@@ -95,13 +106,23 @@ export async function updateSession(
   } =
     await supabase.auth.getClaims()
 
-  return {
-    response: supabaseResponse,
+  const authenticated =
+    !claimsError &&
+    Boolean(
+      claimsData?.claims?.sub
+    )
 
-    authenticated:
-      !claimsError &&
-      Boolean(
-        claimsData?.claims?.sub
-      ),
+  return {
+    response:
+      supabaseResponse,
+
+    authenticated,
+
+    accountType:
+      authenticated
+        ? readPortalAccountType(
+            claimsData?.claims
+          )
+        : null,
   }
 }

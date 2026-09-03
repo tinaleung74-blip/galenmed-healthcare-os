@@ -4,75 +4,151 @@ import {
 } from "next/server"
 
 import {
+  classifyPortalRoute,
+} from "@/lib/auth/portal-route-policy"
+import {
   updateSession,
 } from "@/lib/supabase/proxy"
 
-const protectedPrefixes = [
-  "/admin",
-  "/reception",
-  "/doctor",
-  "/cashier",
-] as const
+function createRedirectResponse(
+  request:
+    NextRequest,
 
-function isProtectedStaffPath(
-  pathname: string
-): boolean {
-  if (
-    pathname === "/staff" ||
-    pathname === "/staff/change-password" ||
-    pathname.startsWith(
-      "/staff/change-password/"
+  sessionResponse:
+    NextResponse,
+
+  destination:
+    string,
+
+  includeNextPath =
+    false
+): NextResponse {
+  const redirectUrl =
+    new URL(
+      destination,
+      request.url
     )
-  ) {
-    return true
+
+  if (includeNextPath) {
+    redirectUrl.searchParams.set(
+      "next",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
+    )
   }
 
-  if (
-    pathname ===
-      "/laboratory/dashboard" ||
-    pathname.startsWith(
-      "/laboratory/dashboard/"
+  const redirectResponse =
+    NextResponse.redirect(
+      redirectUrl
     )
-  ) {
-    return true
-  }
 
-  return protectedPrefixes.some(
-    (prefix) =>
-      pathname === prefix ||
-      pathname.startsWith(
-        `${prefix}/`
-      )
-  )
+  sessionResponse.cookies
+    .getAll()
+    .forEach(
+      (cookie) => {
+        redirectResponse.cookies.set(
+          cookie
+        )
+      }
+    )
+
+  return redirectResponse
 }
 
 export async function proxy(
   request: NextRequest
 ) {
+  const routeKind =
+    classifyPortalRoute(
+      request.nextUrl.pathname
+    )
+
   const {
     response,
     authenticated,
-  } = await updateSession(request)
+    accountType,
+  } = await updateSession(
+    request
+  )
 
   if (
-    isProtectedStaffPath(
-      request.nextUrl.pathname
-    ) &&
-    !authenticated
+    routeKind ===
+    "legacy-staff-quarantine"
   ) {
-    const loginUrl = new URL(
-      "/staff/login",
-      request.url
-    )
+    if (!authenticated) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/staff/login",
+        true
+      )
+    }
 
-    loginUrl.searchParams.set(
-      "next",
-      request.nextUrl.pathname
-    )
+    if (
+      accountType ===
+      "patient"
+    ) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/patient/dashboard"
+      )
+    }
 
-    return NextResponse.redirect(
-      loginUrl
+    return createRedirectResponse(
+      request,
+      response,
+      "/staff"
     )
+  }
+
+  if (
+    routeKind ===
+    "staff-protected"
+  ) {
+    if (!authenticated) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/staff/login",
+        true
+      )
+    }
+
+    if (
+      accountType ===
+      "patient"
+    ) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/patient/dashboard"
+      )
+    }
+  }
+
+  if (
+    routeKind ===
+    "patient-protected"
+  ) {
+    if (!authenticated) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/patient/login",
+        true
+      )
+    }
+
+    if (
+      accountType ===
+      "staff"
+    ) {
+      return createRedirectResponse(
+        request,
+        response,
+        "/staff"
+      )
+    }
   }
 
   return response
@@ -80,6 +156,6 @@ export async function proxy(
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

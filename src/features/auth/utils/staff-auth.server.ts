@@ -1,4 +1,6 @@
-import { redirect } from "next/navigation"
+import {
+  redirect,
+} from "next/navigation"
 
 import {
   staffContextSchema,
@@ -12,19 +14,26 @@ import {
   hasStaffRole,
 } from "@/features/auth/utils/staff-auth.utils"
 import {
+  readPortalAccountType,
+} from "@/lib/auth/portal-account-type"
+import {
   createClient,
 } from "@/lib/supabase/server"
 
 interface CurrentStaffAuthState {
-  context: StaffContext | null
-  mustChangePassword: boolean
+  context:
+    StaffContext | null
+
+  mustChangePassword:
+    boolean
 }
 
 function readMustChangePassword(
   claims: unknown
 ): boolean {
   if (
-    typeof claims !== "object" ||
+    typeof claims !==
+      "object" ||
     claims === null
   ) {
     return false
@@ -89,7 +98,23 @@ async function getCurrentStaffAuthState(): Promise<
     !claimsData?.claims?.sub
   ) {
     return {
-      context: null,
+      context:
+        null,
+
+      mustChangePassword:
+        false,
+    }
+  }
+
+  if (
+    readPortalAccountType(
+      claimsData.claims
+    ) === "patient"
+  ) {
+    return {
+      context:
+        null,
+
       mustChangePassword:
         false,
     }
@@ -104,7 +129,9 @@ async function getCurrentStaffAuthState(): Promise<
 
   if (contextError) {
     return {
-      context: null,
+      context:
+        null,
+
       mustChangePassword:
         false,
     }
@@ -116,9 +143,10 @@ async function getCurrentStaffAuthState(): Promise<
     )
 
   return {
-    context: parsedContext.success
-      ? parsedContext.data
-      : null,
+    context:
+      parsedContext.success
+        ? parsedContext.data
+        : null,
 
     mustChangePassword:
       readMustChangePassword(
@@ -137,10 +165,13 @@ export async function getCurrentStaffContext(): Promise<
 }
 
 function validateActiveStaffContext(
-  context: StaffContext | null
+  context:
+    StaffContext | null
 ): StaffContext {
   if (!context) {
-    redirect("/staff/login")
+    redirect(
+      "/staff/login"
+    )
   }
 
   if (
