@@ -1,4 +1,4 @@
-"use server"
+﻿"use server"
 
 import {
   revalidatePath,
@@ -304,22 +304,6 @@ export async function setCashierPaymentClearanceAction(
     }
   }
 
-  if (
-    parsedValues.data
-      .clearanceStatus ===
-      "waived" &&
-    !context.roles.some(
-      (role) =>
-        role.code ===
-        "SYSTEM_ADMIN"
-    )
-  ) {
-    return {
-      success: false,
-      message:
-        "Only a System Administrator can waive payment clearance.",
-    }
-  }
 
   let clearedAmountCentavos = 0
 
@@ -552,3 +536,4 @@ export async function recordCashierReceiptPrintAction(
     },
   }
 }
+

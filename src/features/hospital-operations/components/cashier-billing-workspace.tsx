@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import {
   useMemo,
@@ -818,7 +818,10 @@ export function CashierBillingWorkspace({
         key={`cashier-clearance-${clearanceDialogSession}`}
         account={clearanceAccount}
         clearance={selectedClearance}
-        canWaive={canWaive}
+        canWaive={
+          canWaive ||
+          selectedClearance?.requiredAmountCentavos === 0
+        }
         open={Boolean(
           clearanceAccount &&
             selectedClearance
@@ -832,3 +835,4 @@ export function CashierBillingWorkspace({
     </main>
   )
 }
+
